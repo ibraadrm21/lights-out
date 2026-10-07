@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lightsout-backend
+  labels:
+    app: lightsout-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: lightsout-backend
+  template:
+    metadata:
+      labels:
+        app: lightsout-backend
+    spec:
+      containers:
+      - name: backend
+        image: lightsout/backend:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: lightsout-secrets
+              key: jwt-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lightsout-backend-service
+spec:
+  selector:
+    app: lightsout-backend
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000

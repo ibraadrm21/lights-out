@@ -1,0 +1,1502 @@
+/* =========================================================================
+   LIGHTS OUT - FORMULA 1 DESIGN SYSTEM
+   Inspired by Dribbble Formula 1 UI, F1 TV, Racing Telemetry and High-Tech Paddock
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Formula1:wght@400;700&family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+:root {
+  /* F1 Official Color Palette */
+  --f1-red: #e10600;
+  --f1-red-dark: #b30000;
+  --f1-red-glow: rgba(225, 6, 0, 0.45);
+  
+  --bg-deep: #08080a;
+  --bg-surface: #0f1015;
+  --bg-card: #151720;
+  --bg-card-hover: #1b1e2a;
+  --bg-carbon: #121318;
+  
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(225, 6, 0, 0.4);
+  --border-neon: rgba(0, 210, 190, 0.4);
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  
+  --color-gold: #f59e0b;
+  --color-silver: #94a3b8;
+  --color-bronze: #d97706;
+  --color-mercedes-cyan: #00d2be;
+  --color-mclaren-papaya: #ff8000;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  
+  --shadow-f1: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 0 20px -5px var(--f1-red-glow);
+  --transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: var(--font-heading);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 15% 10%, rgba(225, 6, 0, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(0, 210, 190, 0.06) 0%, transparent 45%),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(21, 23, 32, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.carbon-texture {
+  background: 
+    linear-gradient(27deg, #151515 5px, transparent 5px) 0 5px,
+    linear-gradient(207deg, #151515 5px, transparent 5px) 10px 0px,
+    linear-gradient(27deg, #222 5px, transparent 5px) 0px 10px,
+    linear-gradient(207deg, #222 5px, transparent 5px) 10px 5px,
+    linear-gradient(90deg, #1b1b1b 10px, #181818 10px);
+  background-size: 20px 20px;
+}
+
+/* App Header & Navigation */
+header.app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(8, 8, 10, 0.88);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.85rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.f1-lights-logo {
+  display: flex;
+  gap: 4px;
+}
+
+.f1-lights-logo span {
+  width: 10px;
+  height: 24px;
+  background: var(--f1-red);
+  border-radius: 3px;
+  box-shadow: 0 0 10px var(--f1-red);
+  animation: pulse-lights 2s infinite ease-in-out;
+}
+
+.f1-lights-logo span:nth-child(2) { animation-delay: 0.2s; }
+.f1-lights-logo span:nth-child(3) { animation-delay: 0.4s; }
+.f1-lights-logo span:nth-child(4) { animation-delay: 0.6s; }
+.f1-lights-logo span:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes pulse-lights {
+  0%, 100% { opacity: 0.4; transform: scaleY(0.9); }
+  50% { opacity: 1; transform: scaleY(1.1); box-shadow: 0 0 16px var(--f1-red); }
+}
+
+.brand-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-title .badge-f1 {
+  background: var(--f1-red);
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+/* Nav links */
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  list-style: none;
+}
+
+.nav-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: var(--transition-fast);
+}
+
+.nav-btn:hover, .nav-btn.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-btn.active {
+  color: #fff;
+  border-color: var(--f1-red);
+  box-shadow: 0 0 15px rgba(225, 6, 0, 0.2);
+}
+
+/* Telemetry Stats Bar */
+.user-telemetry-badge {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+}
+
+.coin-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-gold);
+}
+
+.rank-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.avatar-preview-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: #252836;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  overflow: hidden;
+  border: 2px solid var(--f1-red);
+}
+
+.avatar-preview-mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Main Container */
+main.main-viewport {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem 1.5rem;
+}
+
+/* Hero Section */
+.hero-banner {
+  background: linear-gradient(135deg, rgba(225, 6, 0, 0.15) 0%, rgba(20, 22, 32, 0.95) 70%),
+              url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><path d="M0 20 L20 0 L40 0 L0 40 Z" fill="rgba(255,255,255,0.015)"/></svg>');
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8);
+}
+
+.hero-banner::after {
+  content: "";
+  position: absolute;
+  right: -50px;
+  top: -50px;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, var(--f1-red-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(225, 6, 0, 0.2);
+  color: #ff4d4d;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  margin-bottom: 1rem;
+  border: 1px solid rgba(225, 6, 0, 0.3);
+}
+
+.hero-title {
+  font-size: 3.2rem;
+  font-weight: 900;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  margin-bottom: 1rem;
+}
+
+.hero-title span {
+  color: var(--f1-red);
+  text-shadow: 0 0 30px var(--f1-red-glow);
+}
+
+.hero-desc {
+  max-width: 650px;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Primary buttons */
+.btn-f1-primary {
+  background: linear-gradient(135deg, var(--f1-red) 0%, #b30000 100%);
+  color: #fff;
+  border: none;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.85rem 1.8rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-shadow: 0 4px 20px var(--f1-red-glow);
+  transition: var(--transition-fast);
+}
+
+.btn-f1-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(225, 6, 0, 0.6);
+  background: linear-gradient(135deg, #ff1a14 0%, var(--f1-red) 100%);
+}
+
+.btn-f1-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border: 1px solid var(--border-subtle);
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.85rem 1.8rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: var(--transition-fast);
+}
+
+.btn-f1-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Minigames Grid */
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.8rem;
+  margin-bottom: 3.5rem;
+}
+
+.game-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.8rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition-smooth);
+  box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
+}
+
+.game-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--border-highlight);
+  background: var(--bg-card-hover);
+  box-shadow: 0 15px 35px -10px rgba(225, 6, 0, 0.25);
+}
+
+.game-card-badge {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.badge-ai { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+.badge-word { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+.badge-geo { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+.game-card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1.2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.game-card-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  margin-bottom: 0.6rem;
+}
+
+.game-card-desc {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.game-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 1.2rem;
+}
+
+.game-reward-pills {
+  display: flex;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.reward-pts { color: var(--color-mercedes-cyan); }
+.reward-coins { color: var(--color-gold); }
+
+/* Play View Container */
+.play-view-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  margin-top: 1rem;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+.play-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 1.2rem;
+}
+
+/* Quiz Specific Styling */
+.quiz-question-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.quiz-meta {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.quiz-hash-indicator {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.quiz-question-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.quiz-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.option-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 1.2rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.option-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.option-btn.correct {
+  background: rgba(16, 185, 129, 0.2) !important;
+  border-color: var(--color-success) !important;
+  color: #fff !important;
+}
+
+.option-btn.incorrect {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: var(--color-danger) !important;
+  color: #fff !important;
+}
+
+/* Driverle Styling - Formula1 DRIVERLE Faithful Recreation */
+.driverle-container {
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: 'Outfit', sans-serif;
+  color: #fff;
+}
+
+.driverle-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.driverle-brand-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.driverle-brand-title span.orange {
+  color: #f59e0b;
+}
+
+.driverle-sub-plays {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  text-decoration: underline;
+  margin-bottom: 1.5rem;
+}
+
+.driverle-summary-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #191c24;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 0.8rem 1.4rem;
+  margin-bottom: 1.2rem;
+}
+
+.driverle-stat-item {
+  text-align: center;
+}
+
+.driverle-stat-item .label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.driverle-stat-item .value {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  margin-top: 0.15rem;
+}
+
+.driverle-gear-btn {
+  background: #232733;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f3f4f6;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+}
+
+.driverle-gear-btn:hover {
+  background: #32384a;
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+/* Settings Box */
+.driverle-settings-box {
+  background: #14161f;
+  border: 1px solid #2a2e3d;
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.driverle-settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.driverle-range-badges {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.driverle-badge-orange {
+  background: #d97706;
+  color: #fff;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.4);
+}
+
+/* Double Range Slider Track */
+.double-slider-wrapper {
+  position: relative;
+  height: 42px;
+  margin: 1.5rem 0 1rem 0;
+}
+
+.slider-track {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 14px;
+  background: #374151;
+  border-radius: 7px;
+}
+
+.slider-track-highlight {
+  position: absolute;
+  height: 100%;
+  background: #d97706;
+  border-radius: 7px;
+}
+
+.range-input {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  background: none;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  margin: 0;
+}
+
+.range-input::-webkit-slider-thumb {
+  pointer-events: auto;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 34px;
+  background: #9ca3af;
+  border: 2px solid #374151;
+  border-radius: 6px;
+  cursor: ew-resize;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+}
+
+.range-input::-webkit-slider-thumb:hover {
+  background: #f3f4f6;
+  border-color: #f59e0b;
+}
+
+.range-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 26px;
+  height: 34px;
+  background: #9ca3af;
+  border: 2px solid #374151;
+  border-radius: 6px;
+  cursor: ew-resize;
+}
+
+.slider-ticks-row {
+  display: flex;
+  justify-content: space-between;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  margin-top: 0.4rem;
+}
+
+/* Toggle Option Groups */
+.driverle-opts-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.driverle-opts-label {
+  width: 70px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #d1d5db;
+}
+
+.driverle-btn-group {
+  display: flex;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.driverle-toggle-btn {
+  background: #1f2430;
+  color: #9ca3af;
+  border: none;
+  border-right: 1px solid #374151;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.driverle-toggle-btn:last-child {
+  border-right: none;
+}
+
+.driverle-toggle-btn.active {
+  background: #d97706;
+  color: #fff;
+}
+
+.driverle-btn-confirm {
+  width: 100%;
+  margin-top: 1.4rem;
+  background: #1f2937;
+  border: 1px solid #374151;
+  color: #fff;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.driverle-btn-confirm:hover {
+  background: #d97706;
+  border-color: #f59e0b;
+}
+
+/* Headers Bar Matching Capture: Drvr | First year | Last year | WCs | Wins | Top 3s | Pnts | Poles | GPs */
+.driverle-tiles-header {
+  display: grid;
+  grid-template-columns: 1.8fr repeat(8, 1fr);
+  gap: 6px;
+  margin-bottom: 0.8rem;
+}
+
+.driverle-tile-h {
+  background: #ffffff;
+  color: #0b0d13;
+  font-weight: 900;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  padding: 0.6rem 0.2rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Guess Input Row */
+.driverle-search-box {
+  position: relative;
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.driverle-input-text {
+  flex-grow: 1;
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.driverle-input-text::placeholder {
+  color: #6b7280;
+}
+
+.driverle-btn-submit {
+  background: #1e293b;
+  border: 1px solid #475569;
+  color: #ffffff;
+  padding: 0.75rem 1.6rem;
+  border-radius: 6px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.driverle-btn-submit:hover {
+  background: #d97706;
+  border-color: #f59e0b;
+}
+
+/* Suggestions Dropdown */
+.driverle-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 120px;
+  background: #181b24;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+  margin-top: 4px;
+}
+
+.driverle-suggest-item {
+  padding: 0.7rem 1rem;
+  color: #e5e7eb;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+}
+
+.driverle-suggest-item:hover {
+  background: #282e3e;
+  color: #f59e0b;
+}
+
+/* History Rows Grid */
+.driverle-attempts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.driverle-attempt-grid {
+  display: grid;
+  grid-template-columns: 1.8fr repeat(8, 1fr);
+  gap: 6px;
+}
+
+.driverle-cell {
+  background: #212634;
+  color: #f3f4f6;
+  border-radius: 6px;
+  padding: 0.75rem 0.2rem;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.driverle-cell.exact {
+  background: #15803d !important;
+  color: #ffffff !important;
+  border-color: #22c55e !important;
+}
+
+.driverle-cell.higher {
+  background: #b45309 !important;
+  color: #ffffff !important;
+}
+
+.driverle-cell.lower {
+  background: #1e3a8a !important;
+  color: #ffffff !important;
+}
+
+.driverle-cell.name-cell {
+  background: #2a3042;
+  font-size: 0.9rem;
+  text-align: left;
+  padding-left: 0.8rem;
+  align-items: flex-start;
+}
+
+
+/* GeoGuessr Styling */
+.track-canvas-box {
+  background: #000;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  min-height: 320px;
+}
+
+.track-svg {
+  filter: drop-shadow(0 0 12px var(--f1-red));
+}
+
+.track-svg path {
+  fill: none;
+  stroke: var(--f1-red);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw-circuit 2.5s forwards ease-in-out;
+}
+
+@keyframes draw-circuit {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Toast Notifications */
+#toast-container {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.toast {
+  background: rgba(21, 23, 32, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--f1-red);
+  padding: 1rem 1.4rem;
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: slide-in 0.3s ease-out;
+}
+
+@keyframes slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Form Controls & Dropdown Lists (Fix white background on options) */
+select, input, textarea {
+  color-scheme: dark;
+}
+
+select {
+  background-color: #12141c !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  cursor: pointer;
+}
+
+select:focus {
+  border-color: var(--f1-red) !important;
+  box-shadow: 0 0 12px var(--f1-red-glow) !important;
+}
+
+select option {
+  background-color: #151720 !important;
+  color: #f8fafc !important;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+}
+
+select option:hover,
+select option:focus,
+select option:checked {
+  background-color: #e10600 !important;
+  color: #ffffff !important;
+}
+
+/* =========================================================================
+   GEOGUESSR FAITHFUL FULLSCREEN GAMEPLAY HUD & MINI-MAP (OFFICIAL STYLE)
+   ========================================================================= */
+
+/* Main Fullscreen Stage */
+.geoguessr-stage {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 95;
+  background: #000;
+  overflow: hidden;
+  user-select: none;
+}
+
+.geoguessr-viewport-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  z-index: 1;
+}
+
+/* Street View Embed inside Fullscreen Viewport */
+.geoguessr-viewport-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* Anti-Cheat Street Name Censoring Overlays */
+.geoguessr-mask-topleft {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 90px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(0,0,0,0.85) 60%, transparent 100%);
+  z-index: 20;
+  pointer-events: none;
+  padding: 14px 20px;
+}
+
+.geoguessr-mask-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.96) 20%, rgba(0, 0, 0, 0.75) 65%, transparent 100%);
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  padding: 12px 24px;
+}
+
+/* Top GeoGuessr HUD Bar */
+.geoguessr-hud-top {
+  position: absolute;
+  top: 14px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.geoguessr-hud-top > * {
+  pointer-events: auto;
+}
+
+/* Top Left Brand Logo */
+.geoguessr-brand-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 17, 26, 0.85);
+  backdrop-filter: blur(12px);
+  padding: 6px 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease;
+}
+
+.geoguessr-brand-badge:hover {
+  transform: scale(1.03);
+}
+
+.geoguessr-logo-text {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  font-size: 1.15rem;
+  color: #ff3344;
+  text-shadow: 0 0 12px rgba(255, 51, 68, 0.5);
+}
+
+.geoguessr-logo-sub {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.75rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+/* Top Center Compass + Timer */
+.geoguessr-center-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.geoguessr-compass-bar {
+  background: rgba(15, 18, 28, 0.88);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 4px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+
+.geoguessr-compass-bar span.active-cardinal {
+  color: #fff;
+  font-weight: 900;
+}
+
+.geoguessr-compass-bar span.compass-tick {
+  color: #475569;
+  font-size: 0.75rem;
+}
+
+.geoguessr-timer-capsule {
+  background: linear-gradient(135deg, #4338ca 0%, #312e81 100%);
+  color: #ffffff;
+  border: 1px solid rgba(165, 180, 252, 0.4);
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.6);
+  border-radius: 999px;
+  padding: 4px 18px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Top Right Round & Total Tracker (Purple Pills) */
+.geoguessr-tracker-container {
+  display: flex;
+  align-items: center;
+  background: rgba(24, 20, 50, 0.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 12px;
+  padding: 6px 12px;
+  gap: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+}
+
+.geoguessr-round-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #a78bfa;
+  letter-spacing: 0.5px;
+}
+
+.geoguessr-round-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.geoguessr-pill {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.geoguessr-pill.completed {
+  background: #10b981;
+  color: #fff;
+  border-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.geoguessr-pill.active {
+  background: #6366f1;
+  color: #fff;
+  border-color: #818cf8;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.7);
+  transform: scale(1.1);
+}
+
+.geoguessr-total-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-left: 10px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.geoguessr-total-box .total-title {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #c4b5fd;
+  text-transform: uppercase;
+}
+
+.geoguessr-total-box .total-number {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+}
+
+/* Floating Left Controls Strip */
+.geoguessr-left-controls {
+  position: absolute;
+  left: 20px;
+  bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 30;
+}
+
+.geoguessr-icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(15, 18, 28, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.geoguessr-icon-btn:hover {
+  background: #e10600;
+  color: #fff;
+  border-color: #ff4d4d;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(225, 6, 0, 0.5);
+}
+
+/* Bottom Right Interactive Mini-Map Widget (Official GeoGuessr Feel) */
+.geoguessr-minimap-wrapper {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  z-index: 35;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  user-select: none;
+}
+
+.geoguessr-minimap-card {
+  width: 320px;
+  height: 210px;
+  background: rgba(15, 18, 28, 0.95);
+  backdrop-filter: blur(16px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+/* Hover / Focus Expand Mini-Map (Just like real GeoGuessr) */
+.geoguessr-minimap-card:hover,
+.geoguessr-minimap-card.expanded {
+  width: 580px;
+  height: 380px;
+  border-color: rgba(225, 6, 0, 0.8);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 25px rgba(225, 6, 0, 0.3);
+}
+
+/* Leaflet container inside mini-map */
+#geoguessr-leaflet-map {
+  width: 100%;
+  height: 100%;
+  background: #0f172a;
+}
+
+/* Big "COLOCA TU CHINCHETA EN EL MAPA" / "ADIVINAR" Button */
+.btn-geoguessr-guess {
+  width: 100%;
+  padding: 12px 18px;
+  background: #475569;
+  color: #94a3b8;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 10px;
+  cursor: not-allowed;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  text-align: center;
+}
+
+.btn-geoguessr-guess.ready {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-geoguessr-guess.ready:hover {
+  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.7);
+}
+
+/* Expand / Collapse Map Toggle Icon in Corner */
+.minimap-toggle-size {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  z-index: 1000;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.minimap-toggle-size:hover {
+  background: rgba(225, 6, 0, 0.8);
+}
+
+/* Bottom Clues & Filters Bar */
+.geoguessr-bottom-bar {
+  position: absolute;
+  bottom: 24px;
+  left: 80px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.geoguessr-clue-pill {
+  background: rgba(15, 18, 28, 0.88);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #f59e0b;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.geoguessr-clue-pill:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+}
+
+/* Result Modal Overlay after Guess */
+.geoguessr-result-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(12px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.geoguessr-result-dialog {
+  background: #11131c;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  width: 90%;
+  max-width: 680px;
+  padding: 2.2rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
+  position: relative;
+  text-align: center;
+}
+
+.geoguessr-score-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.8rem;
+  margin: 0 auto 1.2rem auto;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  header.app-nav { padding: 0.8rem 1rem; }
+  .quiz-options-grid { grid-template-columns: 1fr; }
+  .hero-title { font-size: 2.2rem; }
+  .geoguessr-minimap-card { width: 260px; height: 180px; }
+  .geoguessr-minimap-card:hover, .geoguessr-minimap-card.expanded { width: 90vw; height: 320px; }
+  .geoguessr-bottom-bar { left: 20px; bottom: 85px; }
+}
