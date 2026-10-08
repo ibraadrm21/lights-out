@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIGHTS OUT | Official Formula 1 Knowledge & Minigames Hub</title>
+  <meta name="description" content="Plataforma de competición de Fórmula 1: Quiz Master con IA local sin repeticiones, Driverle, GeoGuessr, economía de PitCoins y clasificación global.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏁</text></svg>">
+  <!-- High Octane F1 Typography: Titillium Web & Montserrat & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,600;0,700;0,800;0,900;1,800;1,900&family=Outfit:wght@400;600;700;800;900&family=Space+Grotesk:wght@500;700&family=Titillium+Web:ital,wght@0,400;0,600;0,700;0,900;1,700;1,900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <!-- Leaflet Map CSS & JS (Georreferenced Real World Map) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+<body>
+
+  <!-- Top Red Accent Racing Stripe & Ticker Bar -->
+  <div class="f1-ticker-stripe">
+    <div class="f1-ticker-content">
+      <span class="ticker-live-dot"></span>
+      <span class="ticker-item"><strong>ROUND 24</strong> ABU DHABI GRAND PRIX • YAS MARINA</span>
+      <span class="ticker-separator">//</span>
+      <span class="ticker-item"><strong style="color: #ff8000;">MCLAREN</strong> 666 PTS • <strong>FERRARI</strong> 652 PTS • <strong>RED BULL</strong> 589 PTS</span>
+      <span class="ticker-separator">//</span>
+      <span class="ticker-item">⚡ <strong>AI QUIZ ENGINE:</strong> 0% REPETICIONES GARANTIZADAS</span>
+      <span class="ticker-separator">//</span>
+      <span class="ticker-item">🏎️ <strong>SUPERLICENCE:</strong> COMPITE, ACUMULA PITCOINS Y LIDERA EL PADDOCK</span>
+    </div>
+  </div>
+
+  <!-- Top Racing Navigation Bar -->
+  <header class="app-nav">
+    <div class="brand-container" id="nav-brand-btn">
+      <div class="f1-lights-logo">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="brand-title">
+        <span class="f1-font-italic">LIGHTS OUT</span>
+        <span class="badge-f1">F1 HUB</span>
+      </div>
+    </div>
+
+    <nav>
+      <ul class="nav-menu">
+        <li><button class="nav-btn active" id="tab-home"><span class="nav-btn-icon">🏎️</span> Paddock</button></li>
+        <li><button class="nav-btn" id="tab-quiz"><span class="nav-btn-icon">⚡</span> F1 Quiz AI</button></li>
+        <li><button class="nav-btn" id="tab-driverle"><span class="nav-btn-icon">🕵️</span> Driverle</button></li>
+        <li><button class="nav-btn" id="tab-geoguessr"><span class="nav-btn-icon">🗺️</span> GeoGuessr</button></li>
+        <li><button class="nav-btn" id="tab-leaderboard"><span class="nav-btn-icon">🏆</span> Clasificación</button></li>
+        <li><a href="https://discord.gg" target="_blank" rel="noopener noreferrer" class="nav-btn nav-discord" id="tab-discord"><span class="nav-btn-icon">👾</span> Discord</a></li>
+        <li><button class="nav-btn" id="tab-paddock-store"><span class="nav-btn-icon">🛍️</span> Tienda</button></li>
+        <li><button class="nav-btn" id="tab-profile"><span class="nav-btn-icon">👤</span> Perfil</button></li>
+        <li><button class="nav-btn nav-btn-admin" id="tab-admin"><span class="nav-btn-icon">⚙️</span> FIA Control</button></li>
+      </ul>
+    </nav>
+
+    <!-- User Live Telemetry Chip -->
+    <div class="user-telemetry-badge" id="telemetry-bar-btn" style="cursor: pointer;" title="Abrir Perfil y Telemetría">
+      <div class="coin-chip">
+        <span class="coin-icon">🪙</span> <span id="nav-user-coins">750</span>
+      </div>
+      <div class="rank-chip" id="nav-user-rank">
+        <span id="nav-rank-icon">🌱</span> <span id="nav-rank-name">Rookie</span>
+      </div>
+      <div class="avatar-preview-mini" id="nav-avatar-circle">
+        <span id="nav-avatar-fallback">🏎️</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Viewport Target -->
+  <main class="main-viewport" id="app-root">
+    <!-- Dynamic Views will be injected here via app.js -->
+  </main>
+
+  <!-- Formula 1 Official Paddock Footer -->
+  <footer class="f1-footer">
+    <div class="f1-footer-content">
+      <div class="f1-footer-brand">
+        <div class="footer-f1-logo">
+          <div class="f1-lights-logo mini">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <span class="f1-font-italic">LIGHTS OUT</span>
+        </div>
+        <p class="footer-desc">
+          Official Formula 1 Knowledge Hub & Interactive Racing Ecosystem. Disfruta de Quiz con IA generativa libre de repeticiones, Driverle diario, telemetría y GeoGuessr de circuitos mundiales.
+        </p>
+      </div>
+
+      <div class="f1-footer-links">
+        <div class="footer-col">
+          <span class="footer-col-title">COMPETICIÓN</span>
+          <a href="#" onclick="window.__navTab && window.__navTab('quiz'); return false;">F1 Quiz Master</a>
+          <a href="#" onclick="window.__navTab && window.__navTab('driverle'); return false;">Driverle Telemetría</a>
+          <a href="#" onclick="window.__navTab && window.__navTab('geoguessr'); return false;">Circuit GeoGuessr</a>
+          <a href="#" onclick="window.__navTab && window.__navTab('leaderboard'); return false;">Clasificación Mundial</a>
+        </div>
+        <div class="footer-col">
+          <span class="footer-col-title">PADDOCK CLUB</span>
+          <a href="#" onclick="window.__navTab && window.__navTab('paddock-store'); return false;">Tienda de PitCoins</a>
+          <a href="#" onclick="window.__navTab && window.__navTab('profile'); return false;">Superlicencia FIA</a>
+          <a href="https://discord.gg" target="_blank" rel="noopener noreferrer">Comunidad Discord</a>
+          <a href="#" onclick="window.__navTab && window.__navTab('admin'); return false;">Consola FIA Admin</a>
+        </div>
+        <div class="footer-col">
+          <span class="footer-col-title">OFICIAL</span>
+          <span class="footer-meta-pill">FIA REGULATION VERIFIED</span>
+          <span class="footer-meta-pill">F1 TELEMETRY READY</span>
+          <span class="footer-meta-pill">LOCAL AI GENERATIVE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="f1-footer-bottom">
+      <div class="footer-legal">
+        © 2026 LIGHTS OUT RACING PLATFORM. Inspired by Formula 1, F1 TV & Official Motorsport telemetry design patterns.
+      </div>
+      <div class="footer-status-pill">
+        <span class="live-blink"></span> PADDOCK TELEMETRY LIVE
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Main Application Script -->
+  <script type="module" src="app.js?v=2"></script>
+</body>
+</html>

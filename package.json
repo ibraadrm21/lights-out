@@ -1,0 +1,11 @@
+{
+  "name": "lights-out",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Lights Out - Official Formula 1 Racing & Minigames Hub",
+  "scripts": {
+    "dev": "npm --prefix frontend-react run dev",
+    "build": "npm --prefix frontend-react run build",
+    "preview": "npm --prefix frontend-react run preview"
+  }
+}
