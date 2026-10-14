@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Trophy, AlertCircle, RefreshCw, ArrowUp, ArrowDown, Check, 
-  Share2, Calendar, Flame, SlidersHorizontal, KeyRound, Award, Sparkles 
+  Share2, Calendar, Flame, SlidersHorizontal, KeyRound, Award, Sparkles, Zap
 } from 'lucide-react';
 import { DriverleEngine } from '../../lib/lightsout/driverle-engine.js';
 import { F1_DRIVERS } from '../../lib/lightsout/data.js';
@@ -59,13 +59,20 @@ export const DriverleView: React.FC = () => {
     setInputValue(val);
 
     if (val.trim().length >= 1) {
-      const q = val.toLowerCase();
+      const q = val.toLowerCase().trim();
       const filtered = F1_DRIVERS.filter(
         (d: any) =>
           d.name.toLowerCase().includes(q) ||
           d.id.toLowerCase().includes(q) ||
+          (d.code && d.code.toLowerCase() === q) ||
           (d.team && d.team.toLowerCase().includes(q))
-      ).slice(0, 7);
+      ).sort((a: any, b: any) => {
+        const aStarts = a.name.toLowerCase().startsWith(q);
+        const bStarts = b.name.toLowerCase().startsWith(q);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return (b.gps || 0) - (a.gps || 0);
+      }).slice(0, 10);
       setSuggestions(filtered);
     } else {
       setSuggestions([]);
@@ -288,8 +295,9 @@ export const DriverleView: React.FC = () => {
                     <span className="text-[7px] font-mono text-white/40 uppercase block mb-0.5">
                       {h.label}
                     </span>
-                    <span className="text-xs font-mono font-bold" style={{ color: h.color }}>
-                      ⚡ {h.val}
+                    <span className="text-xs font-mono font-bold flex items-center gap-1" style={{ color: h.color }}>
+                      <Zap size={11} className="text-amber-400" />
+                      <span>{h.val}</span>
                     </span>
                   </div>
                 ))}

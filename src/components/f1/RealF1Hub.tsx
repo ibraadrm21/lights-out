@@ -4,6 +4,7 @@ import { Trophy, Flag, RefreshCw, Radio, CheckCircle, AlertTriangle, Shield, Gau
 import { openf1, OpenF1ChampionshipDriver, OpenF1ChampionshipTeam, OpenF1RaceResult, OpenF1Session } from '../../lib/openf1Service';
 import { TeamBadge } from './TeamBadge';
 import { getTeamMeta } from '../../lib/teamData';
+import { F1CarIcon, ChequeredFlagIcon } from '../common/F1Icons';
 
 export const RealF1Hub: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'drivers' | 'teams' | 'results'>('drivers');
@@ -107,35 +108,38 @@ export const RealF1Hub: React.FC = () => {
       <div className="flex flex-wrap gap-2 mb-8 border-b border-white/10 pb-4">
         <button
           onClick={() => setActiveTab('drivers')}
-          className={`px-6 py-3 font-mono text-[9px] uppercase tracking-[0.25em] font-bold transition-all border ${
+          className={`px-6 py-3 font-mono text-[9px] uppercase tracking-[0.25em] font-bold transition-all border flex items-center justify-center gap-2 ${
             activeTab === 'drivers'
               ? 'bg-white text-black border-white'
               : 'bg-[#121212] text-white/60 border-white/10 hover:text-white hover:border-white/30'
           }`}
         >
-          🏆 Mundial de Pilotos (Puntos)
+          <Trophy size={13} />
+          <span>Mundial de Pilotos (Puntos)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('teams')}
-          className={`px-6 py-3 font-mono text-[9px] uppercase tracking-[0.25em] font-bold transition-all border ${
+          className={`px-6 py-3 font-mono text-[9px] uppercase tracking-[0.25em] font-bold transition-all border flex items-center justify-center gap-2 ${
             activeTab === 'teams'
               ? 'bg-white text-black border-white'
               : 'bg-[#121212] text-white/60 border-white/10 hover:text-white hover:border-white/30'
           }`}
         >
-          🏎️ Mundial de Constructores
+          <F1CarIcon size={14} />
+          <span>Mundial de Constructores</span>
         </button>
 
         <button
           onClick={() => setActiveTab('results')}
-          className={`px-6 py-3 font-mono text-[9px] uppercase tracking-[0.25em] font-bold transition-all border ${
+          className={`px-6 py-3 font-mono text-[9px] uppercase tracking-[0.25em] font-bold transition-all border flex items-center justify-center gap-2 ${
             activeTab === 'results'
               ? 'bg-white text-black border-white'
               : 'bg-[#121212] text-white/60 border-white/10 hover:text-white hover:border-white/30'
           }`}
         >
-          🏁 Resultados Último GP
+          <ChequeredFlagIcon size={13} />
+          <span>Resultados Último GP</span>
         </button>
       </div>
 

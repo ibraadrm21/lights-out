@@ -12,6 +12,10 @@ import { QuizPage } from './pages/QuizPage';
 import { DriverlePage } from './pages/DriverlePage';
 import { CircuitsPage } from './pages/CircuitsPage';
 import { StandingsPage } from './pages/StandingsPage';
+import { ReactionPage } from './pages/ReactionPage';
+import { HigherLowerPage } from './pages/HigherLowerPage';
+import { HelmetGuessPage } from './pages/HelmetGuessPage';
+import { StrategyPage } from './pages/StrategyPage';
 
 const App: React.FC = () => {
   return (
@@ -26,6 +30,10 @@ const App: React.FC = () => {
         <Route path="/quiz" element={<QuizPage />} />
         <Route path="/driverle" element={<DriverlePage />} />
         <Route path="/circuits" element={<CircuitsPage />} />
+        <Route path="/reaction" element={<ReactionPage />} />
+        <Route path="/higher-lower" element={<HigherLowerPage />} />
+        <Route path="/helmet-guess" element={<HelmetGuessPage />} />
+        <Route path="/strategy" element={<StrategyPage />} />
         <Route path="/standings" element={<StandingsPage />} />
         <Route path="/leaderboard" element={<Navigate to="/standings" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />

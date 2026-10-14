@@ -67,7 +67,8 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
   // Pixel-perfect Pin Icon: (16, 46) is exactly at the needle tip without internal translation offsets
   const createPinIcon = (color: string, label: string, isActual = false) => {
     const pulseStyle = !isActual ? 'filter: drop-shadow(0 0 8px rgba(254, 209, 0, 0.7));' : 'filter: drop-shadow(0 0 10px rgba(225, 6, 0, 0.8));';
-    
+    const flagSvg = isActual ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M4 2v20h2V2H4z"/><path d="M6 3h3.5v3.5H6z"/><path d="M13 3h3.5v3.5H13z"/><path d="M9.5 6.5H13V10H9.5z"/><path d="M16.5 6.5H20V10h-3.5z"/><path d="M6 10h3.5v3.5H6z"/><path d="M13 10h3.5v3.5H13z"/></svg>' : '';
+
     return L.divIcon({
       className: 'f1-map-pin',
       iconSize: [32, 46],
@@ -75,8 +76,8 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
       popupAnchor: [0, -46],
       html: `
         <div style="width: 32px; height: 46px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; user-select: none; pointer-events: auto;">
-          <div style="background-color: ${color}; color: #000; font-family: monospace; font-size: 8px; font-weight: 900; padding: 2px 6px; border-radius: 2px; box-shadow: 0 4px 14px rgba(0,0,0,0.9); border: 1px solid #ffffff; white-space: nowrap; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;">
-            ${label}
+          <div style="background-color: ${color}; color: #000; font-family: monospace; font-size: 8px; font-weight: 900; padding: 2px 6px; border-radius: 2px; box-shadow: 0 4px 14px rgba(0,0,0,0.9); border: 1px solid #ffffff; white-space: nowrap; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center;">
+            ${flagSvg}${label}
           </div>
           <svg width="24" height="28" viewBox="0 0 24 28" fill="none" style="${pulseStyle}">
             <path d="M12 0C5.37 0 0 5.37 0 12C0 19.5 10.5 27.2 11.2 27.7C11.45 27.9 11.72 28 12 28C12.28 28 12.55 27.9 12.8 27.7C13.5 27.2 24 19.5 24 12C24 5.37 18.63 0 12 0Z" fill="${color}" stroke="#ffffff" stroke-width="1.5"/>
@@ -205,7 +206,7 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
       // Actual Circuit Location Marker
       if (!actualMarkerRef.current) {
         const marker = L.marker([actualLocation.lat, actualLocation.lng], {
-          icon: createPinIcon('#e10600', `🏁 ${actualLocation.name}`, true),
+          icon: createPinIcon('#e10600', actualLocation.name, true),
         }).addTo(map);
 
         actualMarkerRef.current = marker;

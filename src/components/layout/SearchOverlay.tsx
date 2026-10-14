@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Radio, Trophy, Zap, Target, MapPin, ArrowRight } from 'lucide-react';
 import { F1_DRIVERS, F1_CONSTRUCTORS, F1_TRACK_CORNERS as F1_TRACKS } from '../../data/f1Data';
+import { CountryFlagSvg } from '../common/F1Icons';
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -205,7 +206,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({ isOpen, onClose }) => {
                         <div className="flex items-center gap-2">
                           <span className="text-[9px] font-mono font-bold text-[#e10600]">#{d.number}</span>
                           <span className="text-xs font-mono font-bold uppercase truncate text-white">{d.name}</span>
-                          <span className="text-xs">{d.flag}</span>
+                          <CountryFlagSvg code={d.flag} width={14} height={10} />
                         </div>
                         <span className="text-[9px] font-mono text-white/40 uppercase block truncate">{d.team}</span>
                       </div>

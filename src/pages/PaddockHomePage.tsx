@@ -3,11 +3,21 @@ import { Link } from 'react-router-dom';
 import Hero from '../components/home/Hero';
 import LogoLoop from '../components/common/LogoLoop';
 import { Footer } from '../components/layout/Footer';
-import { Radio, Zap, Target, MapPin, Trophy, ArrowRight } from 'lucide-react';
+import { Radio, Zap, Target, MapPin, Trophy, ArrowRight, Flame, Eye, Timer, Compass } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const PaddockHomePage: React.FC = () => {
   const modes = [
+    {
+      to: '/strategy',
+      tag: 'PIT WALL TACTICS',
+      title: 'STRATEGY MASTER',
+      desc: 'Tu trabajo no es conducir. Tu trabajo es ganar desde el muro de boxes decidiendo paradas, undercut/overcut, ritmo y gestión meteorológica.',
+      icon: Compass,
+      accent: '#e10600',
+      badge: 'NUEVO JUEGO',
+      pulse: true,
+    },
     {
       to: '/f1-real',
       tag: 'LIVE FIA TELEMETRY',
@@ -35,6 +45,33 @@ export const PaddockHomePage: React.FC = () => {
       icon: Target,
       accent: '#00d2be',
       badge: 'DAILY MYSTERY',
+    },
+    {
+      to: '/reaction',
+      tag: 'REFLEX & START PROTOCOL',
+      title: 'LIGHTS OUT REACTION',
+      desc: 'Semáforo oficial de 5 luces con retardo procedural de 1 a 4 segundos. Mide tus reflejos al milisegundo contra el récord de la parrilla.',
+      icon: Timer,
+      accent: '#e10600',
+      badge: 'TOP REFLEX',
+    },
+    {
+      to: '/higher-lower',
+      tag: 'STATISTICAL DUEL',
+      title: 'HIGHER OR LOWER',
+      desc: 'Duelos históricos cara a cara entre pilotos legendarios: compara victorias, podios, poles, títulos y puntos para batir la racha máxima.',
+      icon: Flame,
+      accent: '#f59e0b',
+      badge: 'STREAK DUEL',
+    },
+    {
+      to: '/helmet-guess',
+      tag: 'VISUAL ARCHIVE',
+      title: 'HELMET GUESS',
+      desc: 'Reconoce los cascos más icónicos de la Fórmula 1 a través de su diseño, pistas técnicas y desenfoque progresivo.',
+      icon: Eye,
+      accent: '#3b82f6',
+      badge: 'VISUAL TEST',
     },
     {
       to: '/circuits',

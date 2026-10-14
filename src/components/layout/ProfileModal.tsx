@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { useToast } from '../../store/useToast';
 import { InlineLoader } from '../common/Loader';
 import { useStore } from '../../store/useStore';
+import { PitCoinIcon } from '../common/F1Icons';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -168,7 +169,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user, init
                           PADDOCK POINTS & COINS
                         </span>
                         <div className="text-2xl font-black font-mono text-white flex items-center gap-2">
-                          <span>🪙</span>
+                          <PitCoinIcon size={22} />
                           <span>{coins.toLocaleString()}</span>
                         </div>
                       </div>

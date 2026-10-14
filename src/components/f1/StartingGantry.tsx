@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, RotateCcw } from 'lucide-react';
+import { Zap, RotateCcw, AlertTriangle } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import { F1CarIcon, PitCoinIcon } from '../common/F1Icons';
 
 // Web Audio API synthesizer for authentic F1 pit and start beep sounds
 const playTone = (freq: number, duration: number, type: OscillatorType = 'sine') => {
@@ -51,8 +52,9 @@ export const StartingGantry: React.FC = () => {
       timeoutRefs.current.push(timer);
     }
 
-    // Random lights out delay between 1.4s and 3.2s after 5th light
-    const randomDelay = 5000 + 1400 + Math.random() * 1800;
+    // Random lights out delay between 1.0s and 4.0s after all 5 lights are on (FIA authentic regulation)
+    const holdDelayMs = 1000 + Math.random() * 3000;
+    const randomDelay = 5000 + holdDelayMs;
     const lightsOutTimer = setTimeout(() => {
       setLightsActive(0);
       setGameState('go');
@@ -148,7 +150,8 @@ export const StartingGantry: React.FC = () => {
         )}
         {gameState === 'jump_start' && (
           <div className="text-red-500 font-mono text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
-            ⚠️ JUMP START DETECTADO (+5s PENALIZACIÓN DE STOP & GO)
+            <AlertTriangle size={14} className="text-red-500" />
+            <span>JUMP START DETECTADO (+5s PENALIZACIÓN DE STOP & GO)</span>
           </div>
         )}
         {reactionTime !== null && (
@@ -157,7 +160,7 @@ export const StartingGantry: React.FC = () => {
               {reactionTime} <span className="text-xs text-white/50">MS</span>
             </span>
             <span
-              className={`text-[9px] font-mono uppercase px-2 py-0.5 border ${
+              className={`text-[9px] font-mono uppercase px-2 py-0.5 border flex items-center gap-1.5 ${
                 reactionTime < 250
                   ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10'
                   : reactionTime < 350
@@ -165,11 +168,19 @@ export const StartingGantry: React.FC = () => {
                   : 'border-white/20 text-white/60 bg-white/5'
               }`}
             >
-              {reactionTime < 220
-                ? '⚡ TIEMPO F1 PRO (+50 COINS)'
-                : reactionTime < 320
-                ? '🏎️ SALIDA SÓLIDA (+25 COINS)'
-                : 'TIEMPO REACCIÓN MEJORABLE'}
+              {reactionTime < 220 ? (
+                <>
+                  <Zap size={11} className="text-yellow-400" />
+                  <span>TIEMPO F1 PRO (+50 COINS)</span>
+                </>
+              ) : reactionTime < 320 ? (
+                <>
+                  <F1CarIcon size={13} className="text-emerald-400" />
+                  <span>SALIDA SÓLIDA (+25 COINS)</span>
+                </>
+              ) : (
+                'TIEMPO REACCIÓN MEJORABLE'
+              )}
             </span>
           </div>
         )}

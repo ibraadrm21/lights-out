@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe2, KeyRound, Award, ArrowRight, RefreshCw, CheckCircle2, AlertTriangle, Navigation, MapPin } from 'lucide-react';
+import { Globe2, KeyRound, Award, ArrowRight, RefreshCw, CheckCircle2, AlertTriangle, Navigation, MapPin, Zap } from 'lucide-react';
 import { CircuitGeoEngine } from '../../lib/lightsout/geoguessr-engine.js';
 import { GoogleMapPicker } from './GoogleMapPicker';
 import { useStore } from '../../store/useStore';
@@ -153,8 +153,9 @@ export const GeoGuessrView: React.FC = () => {
               ) : (
                 <div className="space-y-1">
                   {unlockedClues.map((clue, idx) => (
-                    <div key={idx} className="text-xs text-emerald-400 font-mono">
-                      ⚡ {clue}
+                    <div key={idx} className="text-xs text-emerald-400 font-mono flex items-center gap-1.5">
+                      <Zap size={11} className="text-emerald-400 shrink-0" />
+                      <span>{clue}</span>
                     </div>
                   ))}
                 </div>

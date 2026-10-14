@@ -44,7 +44,7 @@ export const TeamBadge: React.FC<TeamBadgeProps> = ({
           <img
             src={meta.logoUrl}
             alt={meta.shortName}
-            className="w-full h-full object-contain filter drop-shadow-sm"
+            className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
             loading="lazy"
             onError={() => setImgError(true)}
           />

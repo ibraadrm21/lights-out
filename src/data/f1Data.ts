@@ -234,7 +234,7 @@ export const F1_TRACK_CORNERS: F1TrackCorner[] = [
   {
     id: 'c1',
     trackName: 'Circuit de Spa-Francorchamps',
-    country: 'Bélgica 🇧🇪',
+    country: 'Bélgica',
     cornerName: 'Eau Rouge & Raidillon',
     turnNumber: 'Turns 2, 3 & 4',
     lengthKm: 7.004,
@@ -247,7 +247,7 @@ export const F1_TRACK_CORNERS: F1TrackCorner[] = [
   {
     id: 'c2',
     trackName: 'Autodromo Nazionale Monza',
-    country: 'Italia 🇮🇹',
+    country: 'Italia',
     cornerName: 'Curva Alboreto (Parabolica)',
     turnNumber: 'Turn 11',
     lengthKm: 5.793,
@@ -260,7 +260,7 @@ export const F1_TRACK_CORNERS: F1TrackCorner[] = [
   {
     id: 'c3',
     trackName: 'Silverstone Circuit',
-    country: 'Reino Unido 🇬🇧',
+    country: 'Reino Unido',
     cornerName: 'Maggotts & Becketts',
     turnNumber: 'Turns 10-13',
     lengthKm: 5.891,
@@ -273,7 +273,7 @@ export const F1_TRACK_CORNERS: F1TrackCorner[] = [
   {
     id: 'c4',
     trackName: 'Circuit de Monaco',
-    country: 'Mónaco 🇲🇨',
+    country: 'Mónaco',
     cornerName: 'Fairmont / Loews Hairpin',
     turnNumber: 'Turn 6',
     lengthKm: 3.337,
@@ -286,7 +286,7 @@ export const F1_TRACK_CORNERS: F1TrackCorner[] = [
   {
     id: 'c5',
     trackName: 'Suzuka International Racing Course',
-    country: 'Japón 🇯🇵',
+    country: 'Japón',
     cornerName: '130R',
     turnNumber: 'Turn 15',
     lengthKm: 5.807,

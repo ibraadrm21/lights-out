@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Users, Truck, RotateCcw, CreditCard, LogOut, Plus, Edit, Trash2, X, Save, Upload, Menu, Globe } from 'lucide-react';
+import { Package, Users, Truck, RotateCcw, CreditCard, LogOut, Plus, Edit, Trash2, X, Save, Upload, Menu, Globe, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
 import { supabaseAdmin } from '../../lib/supabase';
@@ -888,7 +888,7 @@ const AdminDashboard: React.FC = () => {
                               title={color.name}
                             >
                               {variant.color === color.value && (
-                                <span className="text-[9px] mix-blend-difference font-bold">✓</span>
+                                <Check size={12} strokeWidth={3} className="text-white mix-blend-difference" />
                               )}
                             </button>
                           ))}

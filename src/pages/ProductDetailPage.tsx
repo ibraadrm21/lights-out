@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ShoppingBag, Check, ChevronRight, X, ChevronDown, Sparkles } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Check, ChevronRight, X, ChevronDown, Sparkles, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { useToast } from '../store/useToast';
@@ -594,7 +594,7 @@ const ProductDetailPage: React.FC = () => {
                         title={colorObj?.name || 'Color'}
                       >
                         {isActive && (
-                          <span className="text-[9px] mix-blend-difference font-bold text-white">✓</span>
+                          <Check size={12} strokeWidth={3} className="text-white mix-blend-difference" />
                         )}
                       </button>
                     );
@@ -827,9 +827,11 @@ const ProductDetailPage: React.FC = () => {
                         <div className="flex items-center gap-4">
                           <div className="flex gap-1">
                             {Array.from({ length: 5 }).map((_, i) => (
-                              <span key={i} className={`text-xs ${i < rev.rating ? 'text-white' : 'text-white/10'}`}>
-                                ★
-                              </span>
+                              <Star
+                                key={i}
+                                size={12}
+                                className={i < rev.rating ? 'fill-white text-white' : 'fill-white/10 text-white/10'}
+                              />
                             ))}
                           </div>
                           {currentUser && (currentUser.id === rev.user_id || isAdmin) && (
@@ -944,11 +946,12 @@ const ProductDetailPage: React.FC = () => {
                             key={star}
                             type="button"
                             onClick={() => setRating(star)}
-                            className="text-lg hover:scale-110 transition-transform cursor-pointer"
+                            className="hover:scale-110 transition-transform cursor-pointer p-0.5"
                           >
-                            <span className={star <= rating ? 'text-white' : 'text-white/20'}>
-                              ★
-                            </span>
+                            <Star
+                              size={18}
+                              className={star <= rating ? 'fill-white text-white' : 'fill-transparent text-white/30'}
+                            />
                           </button>
                         ))}
                       </div>
