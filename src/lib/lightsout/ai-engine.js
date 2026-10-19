@@ -87,10 +87,53 @@ export function shuffleArray(arr) {
   return result;
 }
 
+/**
+ * Strictly defined list of legendary pre-2015 drivers:
+ * Only World Champions, multi-Grand Prix winners with 6+ wins, and truly iconic F1 legends.
+ * Excludes obscure/historical drivers who happened to win 1-2 races decades ago (e.g. Jabouille, Revson, etc.).
+ */
+export const PRE_2015_MYTHIC_NAMES = new Set([
+  // World Champions (pre-2015)
+  'Michael Schumacher', 'Juan Manuel Fangio', 'Alain Prost', 'Ayrton Senna',
+  'Jackie Stewart', 'Niki Lauda', 'Nelson Piquet', 'Jack Brabham',
+  'Jim Clark', 'Mika Häkkinen', 'Graham Hill', 'Emerson Fittipaldi',
+  'Alberto Ascari', 'Nigel Mansell', 'Damon Hill', 'Alan Jones',
+  'Mario Andretti', 'Jacques Villeneuve', 'Jody Scheckter', 'James Hunt',
+  'Denny Hulme', 'John Surtees', 'Jochen Rindt', 'Nino Farina',
+  'Keke Rosberg', 'Mike Hawthorn', 'Phil Hill',
+
+  // Iconic Non-Champions (pre-2015) - True legends of the sport
+  'Stirling Moss', 'Gilles Villeneuve', 'Ronnie Peterson', 'Carlos Reutemann',
+  'David Coulthard', 'Rubens Barrichello', 'Gerhard Berger', 'Mark Webber',
+  'Juan Pablo Montoya', 'Jacky Ickx', 'Felipe Massa', 'Jean Alesi',
+  'François Cevert', 'Bruce McLaren',
+
+  // Pilotos míticos y longevos de la era 2000-2015 (5+ temporadas en ese periodo)
+  'Ralf Schumacher', 'Giancarlo Fisichella', 'Jarno Trulli', 'Nick Heidfeld',
+  'Heikki Kovalainen', 'Pedro de la Rosa', 'Kamui Kobayashi', 'Takuma Sato',
+  'Timo Glock', 'Adrian Sutil', 'Alexander Wurz', 'Vitantonio Liuzzi'
+]);
+
+/**
+ * Modern Quiz eligibility:
+ * 1. Pre-2015: STRICTLY the mythic champions and iconic legends defined above.
+ * 2. 2015 onwards: ONLY drivers with at least half a full season (>= 10 GPs).
+ */
+export function isQuizEligibleDriver(d) {
+  const isPost2015 = (d.lastYear || d.debutYear) >= 2015;
+  if (isPost2015) {
+    return (d.gps || 0) >= 10;
+  }
+  return PRE_2015_MYTHIC_NAMES.has(d.name);
+}
+
+export const QUIZ_DRIVERS = F1_DRIVERS.filter(isQuizEligibleDriver);
+
 export class F1AIEngine {
   constructor(servedHashes = new Set()) {
     this.servedHashes = servedHashes instanceof Set ? servedHashes : new Set(servedHashes);
     this._allPossibleQuestionsCache = null;
+    this.categoryHistory = []; // Keeps track of recently served question categories
   }
 
   getServedHashes() {
@@ -106,13 +149,13 @@ export class F1AIEngine {
     }
 
     const candidateQuestions = [];
-    const allDriverNames = F1_DRIVERS.map(d => d.name);
-    const allCountries = Array.from(new Set([...F1_DRIVERS.map(d => d.country), ...F1_CIRCUITS.map(c => c.country)]));
+    const allDriverNames = QUIZ_DRIVERS.map(d => d.name);
+    const allCountries = Array.from(new Set([...QUIZ_DRIVERS.map(d => d.country), ...F1_CIRCUITS.map(c => c.country)]));
     const allCircuitNames = F1_CIRCUITS.map(c => c.name);
     const allTeams = F1_TEAMS.map(t => t.name);
 
     // 1. Championships count (for champions)
-    F1_DRIVERS.filter(d => d.championships > 0).forEach(driver => {
+    QUIZ_DRIVERS.filter(d => d.championships > 0).forEach(driver => {
       const text = `¿Cuántos Campeonatos Mundiales de Pilotos ha ganado ${driver.name}?`;
       const answer = driver.championships.toString();
       const fakePool = [0, 1, 2, 3, 4, 5, 7].filter(n => n !== driver.championships);
@@ -129,7 +172,7 @@ export class F1AIEngine {
     });
 
     // 2. Driver debut year
-    F1_DRIVERS.forEach(driver => {
+    QUIZ_DRIVERS.forEach(driver => {
       const text = `¿En qué año debutó oficialmente ${driver.name} en la Fórmula 1?`;
       const answer = driver.debutYear.toString();
       const fakeYears = [
@@ -149,7 +192,7 @@ export class F1AIEngine {
     });
 
     // 3. Driver nationality
-    F1_DRIVERS.forEach(driver => {
+    QUIZ_DRIVERS.forEach(driver => {
       const text = `¿De qué país es originario el piloto de F1 ${driver.name}?`;
       const answer = driver.country;
       candidateQuestions.push({
@@ -165,7 +208,7 @@ export class F1AIEngine {
     });
 
     // 4. Driver car number
-    F1_DRIVERS.filter(d => d.number > 0).forEach(driver => {
+    QUIZ_DRIVERS.filter(d => d.number > 0).forEach(driver => {
       const text = `¿Qué dorsal o número distintivo ha llevado ${driver.name} en su monoplaza?`;
       const answer = `#${driver.number}`;
       const fakeNumbers = [1, 4, 11, 14, 16, 44, 55, 63, 77, 81, 23, 27, 33, 10, 3].map(n => `#${n}`);
@@ -182,7 +225,7 @@ export class F1AIEngine {
     });
 
     // 5. Driver quotes
-    F1_DRIVERS.filter(d => d.quote && d.quote.length > 5).forEach(driver => {
+    QUIZ_DRIVERS.filter(d => d.quote && d.quote.length > 5).forEach(driver => {
       const text = `¿Qué piloto de F1 pronunció o popularizó la famosa frase: "${driver.quote}"?`;
       const answer = driver.name;
       candidateQuestions.push({
@@ -198,7 +241,7 @@ export class F1AIEngine {
     });
 
     // 6. Driver Fun Fact Trivia
-    F1_DRIVERS.filter(d => d.funFact && d.funFact.length > 10).forEach(driver => {
+    QUIZ_DRIVERS.filter(d => d.funFact && d.funFact.length > 10).forEach(driver => {
       const text = `Trivia F1: "${driver.funFact}" ¿A qué piloto se refiere?`;
       const answer = driver.name;
       candidateQuestions.push({
@@ -214,7 +257,7 @@ export class F1AIEngine {
     });
 
     // 7. Driver GP Wins count
-    F1_DRIVERS.filter(d => d.wins > 0).forEach(driver => {
+    QUIZ_DRIVERS.filter(d => d.wins > 0).forEach(driver => {
       const text = `¿Cuántas victorias oficiales en Grandes Premios ostenta ${driver.name}?`;
       const answer = `${driver.wins} victorias`;
       const offsets = [-8, -4, -2, +3, +7, +12, +18];
@@ -232,7 +275,7 @@ export class F1AIEngine {
     });
 
     // 8. Driver GP Podiums count
-    F1_DRIVERS.filter(d => d.podiums > 0).forEach(driver => {
+    QUIZ_DRIVERS.filter(d => d.podiums > 0).forEach(driver => {
       const text = `¿A cuántos podios ha subido en su trayectoria en F1 ${driver.name}?`;
       const answer = `${driver.podiums} podios`;
       const offsets = [-15, -6, +5, +14, +22];
@@ -413,7 +456,7 @@ export class F1AIEngine {
     });
 
     // 18. Driver team association (strictly canonicalized and excluding all teams the driver has ever raced for)
-    F1_DRIVERS.forEach(driver => {
+    QUIZ_DRIVERS.forEach(driver => {
       const rawParts = (driver.team || '').split(/[\/\(\)]/).map(s => s.trim()).filter(Boolean);
       const driverCanonicalTeams = Array.from(new Set(rawParts.map(p => getCanonicalTeam(p))));
       if (driverCanonicalTeams.length === 0) return;
@@ -436,189 +479,11 @@ export class F1AIEngine {
       });
     });
 
-    // 19. Head-to-Head Driver Duels (Combinatorial Pairing across all metrics)
-    for (let i = 0; i < F1_DRIVERS.length; i++) {
-      for (let j = i + 1; j < F1_DRIVERS.length; j++) {
-        const d1 = F1_DRIVERS[i];
-        const d2 = F1_DRIVERS[j];
-
-        // 19.1 Duels by GP Wins
-        if (d1.wins !== d2.wins) {
-          const winner = d1.wins > d2.wins ? d1 : d2;
-          const loser = d1.wins > d2.wins ? d2 : d1;
-          const text = `Duelo F1: Entre ${d1.name} y ${d2.name}, ¿quién ostenta MÁS victorias en Grandes Premios?`;
-          const answer = winner.name;
-          candidateQuestions.push({
-            category: "Duelos Históricos & Victorias",
-            difficulty: "Medio",
-            text,
-            answer,
-            getOptions: () => shuffleArray([winner.name, loser.name, "Están empatados en victorias", "Ninguno ha ganado un Gran Premio"]),
-            explanation: `${winner.name} acumula ${winner.wins} victorias en F1, superando a ${loser.name} (${loser.wins} victorias).`,
-            points: 100,
-            hash: computeQuestionHash(text, answer)
-          });
-        }
-
-        // 19.2 Duels by GP Podiums
-        if (d1.podiums !== d2.podiums) {
-          const winner = d1.podiums > d2.podiums ? d1 : d2;
-          const loser = d1.podiums > d2.podiums ? d2 : d1;
-          const text = `Duelo F1: Entre ${d1.name} y ${d2.name}, ¿quién ha subido a MÁS podios en Fórmula 1?`;
-          const answer = winner.name;
-          candidateQuestions.push({
-            category: "Duelos Históricos & Podios",
-            difficulty: "Medio",
-            text,
-            answer,
-            getOptions: () => shuffleArray([winner.name, loser.name, "Están empatados en podios", "Ninguno ha subido al podio"]),
-            explanation: `${winner.name} tiene ${winner.podiums} podios en su casillero frente a los ${loser.podiums} de ${loser.name}.`,
-            points: 100,
-            hash: computeQuestionHash(text, answer)
-          });
-        }
-
-        // 19.3 Duels by World Championships
-        if (d1.championships !== d2.championships && (d1.championships > 0 || d2.championships > 0)) {
-          const winner = d1.championships > d2.championships ? d1 : d2;
-          const loser = d1.championships > d2.championships ? d2 : d1;
-          const text = `Duelo de Campeones: ¿Quién ostenta MÁS Títulos Mundiales de Pilotos: ${d1.name} o ${d2.name}?`;
-          const answer = winner.name;
-          candidateQuestions.push({
-            category: "Duelo de Campeones",
-            difficulty: "Fácil",
-            text,
-            answer,
-            getOptions: () => shuffleArray([winner.name, loser.name, "Tienen los mismos títulos", "Ninguno de los dos fue campeón"]),
-            explanation: `${winner.name} tiene ${winner.championships} título(s) mundial(es), frente a ${loser.championships} de ${loser.name}.`,
-            points: 110,
-            hash: computeQuestionHash(text, answer)
-          });
-        }
-
-        // 19.4 Duels by Pole Positions
-        if (d1.poles !== d2.poles) {
-          const winner = d1.poles > d2.poles ? d1 : d2;
-          const loser = d1.poles > d2.poles ? d2 : d1;
-          const text = `Duelo a una Vuelta: ¿Quién ha logrado MÁS pole positions oficiales: ${d1.name} o ${d2.name}?`;
-          const answer = winner.name;
-          candidateQuestions.push({
-            category: "Clasificación & Poles",
-            difficulty: "Medio",
-            text,
-            answer,
-            getOptions: () => shuffleArray([winner.name, loser.name, "Están empatados en poles", "Ninguno ha logrado una pole"]),
-            explanation: `${winner.name} cuenta con ${winner.poles} poles frente a ${loser.poles} de ${loser.name}.`,
-            points: 110,
-            hash: computeQuestionHash(text, answer)
-          });
-        }
-
-        // 19.5 Duels by Grand Prix Longevity
-        if (d1.gps !== d2.gps) {
-          const winner = d1.gps > d2.gps ? d1 : d2;
-          const loser = d1.gps > d2.gps ? d2 : d1;
-          const text = `Longevidad F1: ¿Quién ha disputado MÁS Grandes Premios en la historia: ${d1.name} o ${d2.name}?`;
-          const answer = winner.name;
-          candidateQuestions.push({
-            category: "Longevidad & Grandes Premios",
-            difficulty: "Difícil",
-            text,
-            answer,
-            getOptions: () => shuffleArray([winner.name, loser.name, "Han disputado el mismo número de GPs", "Menos de 50 GPs ambos"]),
-            explanation: `${winner.name} suma ${winner.gps} carreras disputadas frente a las ${loser.gps} de ${loser.name}.`,
-            points: 110,
-            hash: computeQuestionHash(text, answer)
-          });
-        }
-
-        // 19.6 Duels by Debut Chronology
-        if (d1.debutYear !== d2.debutYear) {
-          const earlier = d1.debutYear < d2.debutYear ? d1 : d2;
-          const later = d1.debutYear < d2.debutYear ? d2 : d1;
-          const text = `Cronología F1: ¿Quién debutó ANTES en la Fórmula 1: ${d1.name} o ${d2.name}?`;
-          const answer = earlier.name;
-          candidateQuestions.push({
-            category: "Cronología & Debut",
-            difficulty: "Difícil",
-            text,
-            answer,
-            getOptions: () => shuffleArray([earlier.name, later.name, "Debutaron en la misma temporada", "Ambos debutaron antes del año 2000"]),
-            explanation: `${earlier.name} debutó en ${earlier.debutYear}, mientras que ${later.name} tomó la salida por primera vez en ${later.debutYear}.`,
-            points: 120,
-            hash: computeQuestionHash(text, answer)
-          });
-        }
-      }
-    }
-
-    // 20. Head-to-Head Circuit Duels (Combinatorial Pairing across all circuits)
-    for (let i = 0; i < F1_CIRCUITS.length; i++) {
-      for (let j = i + 1; j < F1_CIRCUITS.length; j++) {
-        const c1 = F1_CIRCUITS[i];
-        const c2 = F1_CIRCUITS[j];
-
-        // 20.1 Circuit Length
-        if (c1.lengthKm !== c2.lengthKm) {
-          const longer = c1.lengthKm > c2.lengthKm ? c1 : c2;
-          const shorter = c1.lengthKm > c2.lengthKm ? c2 : c1;
-          const text = `Trazados F1: ¿Qué circuito tiene una vuelta MÁS LARGA en kilómetros: ${c1.name} o ${c2.name}?`;
-          const answer = longer.name;
-          candidateQuestions.push({
-            category: "Circuitos & Telemetría",
-            difficulty: "Medio",
-            text,
-            answer,
-            getOptions: () => shuffleArray([longer.name, shorter.name, "Tienen exactamente la misma longitud", "Ambos miden menos de 4.0 km"]),
-            explanation: `${longer.name} mide ${longer.lengthKm} km por vuelta frente a los ${shorter.lengthKm} km de ${shorter.name}.`,
-            points: 100,
-            hash: computeQuestionHash(text, answer)
-          });
-        }
-
-        // 20.2 Circuit Turns
-        if (c1.turns !== c2.turns) {
-          const more = c1.turns > c2.turns ? c1 : c2;
-          const less = c1.turns > c2.turns ? c2 : c1;
-          const text = `Trazados F1: ¿Qué circuito cuenta con MÁS curvas en su recorrido oficial: ${c1.name} o ${c2.name}?`;
-          const answer = more.name;
-          candidateQuestions.push({
-            category: "Circuitos & Curvas",
-            difficulty: "Medio",
-            text,
-            answer,
-            getOptions: () => shuffleArray([more.name, less.name, "Tienen el mismo número de curvas", "Ambos tienen menos de 12 curvas"]),
-            explanation: `${more.name} cuenta con ${more.turns} curvas frente a las ${less.turns} de ${less.name}.`,
-            points: 100,
-            hash: computeQuestionHash(text, answer)
-          });
-        }
-
-        // 20.3 Circuit Historical Debut
-        if (c1.firstGP !== c2.firstGP) {
-          const earlier = c1.firstGP < c2.firstGP ? c1 : c2;
-          const later = c1.firstGP < c2.firstGP ? c2 : c1;
-          const text = `Historia de Circuitos: ¿Qué trazado acogió un Gran Premio de F1 ANTES en la historia: ${c1.name} o ${c2.name}?`;
-          const answer = earlier.name;
-          candidateQuestions.push({
-            category: "Circuitos & Historia",
-            difficulty: "Experto",
-            text,
-            answer,
-            getOptions: () => shuffleArray([earlier.name, later.name, "Debutaron el mismo año", "Ambos debutaron después de 2015"]),
-            explanation: `${earlier.name} debutó en el calendario en ${earlier.firstGP}, mientras que ${later.name} lo hizo en ${later.firstGP}.`,
-            points: 120,
-            hash: computeQuestionHash(text, answer)
-          });
-        }
-      }
-    }
-
     // 21. Exclusion / "Which of these DID NOT..." Trivia
-    const champions = F1_DRIVERS.filter(d => d.championships > 0);
-    const nonChampions = F1_DRIVERS.filter(d => d.championships === 0);
-    const winners = F1_DRIVERS.filter(d => d.wins > 0);
-    const nonWinners = F1_DRIVERS.filter(d => d.wins === 0);
+    const champions = QUIZ_DRIVERS.filter(d => d.championships > 0);
+    const nonChampions = QUIZ_DRIVERS.filter(d => d.championships === 0);
+    const winners = QUIZ_DRIVERS.filter(d => d.wins > 0);
+    const nonWinners = QUIZ_DRIVERS.filter(d => d.wins === 0);
     const europeanCountries = ['Italia', 'Reino Unido', 'España', 'Mónaco', 'Bélgica', 'Austria', 'Países Bajos', 'Hungría', 'Azerbaiyán'];
     const euroCircuits = F1_CIRCUITS.filter(c => europeanCountries.includes(c.country));
     const nonEuroCircuits = F1_CIRCUITS.filter(c => !europeanCountries.includes(c.country));
@@ -682,8 +547,10 @@ export class F1AIEngine {
   }
 
   /**
-   * Generates the next question, guaranteeing 100% strictly that it has NEVER
-   * been served to this user before.
+   * Generates the next question, guaranteeing 100% strictly that:
+   * 1. It has NEVER been served to this user before (lifetime uniqueness via servedHashes).
+   * 2. The same question category CANNOT appear back-to-back or within the last 3 questions (anti-monotony cooldown).
+   * 3. Selection is pseudo-random across available distinct categories to avoid predictable patterns.
    */
   generateNextQuestion() {
     const allCandidates = this.generateAllCandidateQuestions();
@@ -692,12 +559,48 @@ export class F1AIEngine {
     const unserved = allCandidates.filter(q => !this.servedHashes.has(q.hash));
 
     if (unserved.length > 0) {
-      // Pick a random unserved candidate
-      const randomIndex = Math.floor(Math.random() * unserved.length);
-      const chosen = unserved[randomIndex];
+      // Group unserved questions by category
+      const categoriesMap = new Map();
+      for (const q of unserved) {
+        if (!categoriesMap.has(q.category)) {
+          categoriesMap.set(q.category, []);
+        }
+        categoriesMap.get(q.category).push(q);
+      }
 
-      // Mark as served immediately
+      // Determine available categories that have NOT appeared recently (cooling memory: last 3 categories)
+      const recentWindow = this.categoryHistory.slice(-3);
+      let eligibleCategories = Array.from(categoriesMap.keys()).filter(
+        cat => !recentWindow.includes(cat)
+      );
+
+      // If cooling window is too restrictive (e.g. only 1-2 categories remain unserved in entire pool),
+      // relax cooling down gradually: try avoiding only the immediate last question's category
+      if (eligibleCategories.length === 0 && this.categoryHistory.length > 0) {
+        const lastCat = this.categoryHistory[this.categoryHistory.length - 1];
+        eligibleCategories = Array.from(categoriesMap.keys()).filter(cat => cat !== lastCat);
+      }
+
+      // If still empty (all remaining questions are of the exact same category), accept all remaining
+      if (eligibleCategories.length === 0) {
+        eligibleCategories = Array.from(categoriesMap.keys());
+      }
+
+      // Pick a random category among eligible to avoid predictable patterns and category-size bias
+      const randomCatIndex = Math.floor(Math.random() * eligibleCategories.length);
+      const chosenCategory = eligibleCategories[randomCatIndex];
+      const questionsInCategory = categoriesMap.get(chosenCategory);
+
+      // Pick a random question from that category
+      const randomQIndex = Math.floor(Math.random() * questionsInCategory.length);
+      const chosen = questionsInCategory[randomQIndex];
+
+      // Mark as served immediately and track category history (keep last 10)
       this.servedHashes.add(chosen.hash);
+      this.categoryHistory.push(chosen.category);
+      if (this.categoryHistory.length > 10) {
+        this.categoryHistory.shift();
+      }
 
       return {
         category: chosen.category,
@@ -717,7 +620,7 @@ export class F1AIEngine {
     // ULTRA-EXTREME EDGE CASE: The user has answered EVERY single one of the 1,000+ questions!
     // In this case, dynamically synthesize an algorithmic question with unique parameters
     // so repetition is STILL mathematically impossible.
-    const driver = F1_DRIVERS[Math.floor(Math.random() * F1_DRIVERS.length)];
+    const driver = QUIZ_DRIVERS[Math.floor(Math.random() * QUIZ_DRIVERS.length)];
     const randomSeed = Math.floor(Math.random() * 90000) + 10000;
     const synthText = `[Desafío Maestro #${randomSeed}] El piloto ${driver.name} debutó en ${driver.debutYear}. ¿Cuántas temporadas de diferencia han pasado desde su debut hasta la temporada 2026?`;
     const diffYears = 2026 - driver.debutYear;

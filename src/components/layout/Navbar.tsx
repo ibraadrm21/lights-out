@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, User, LayoutGrid, Radio, Trophy, Gamepad2, 
-  ChevronDown, Zap, Target, Timer, Flame, Eye, MapPin, Compass 
+  ChevronDown, Zap, Target, Timer, Flame, Eye, MapPin, Compass, Sparkles, Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, NavLink, useLocation } from 'react-router-dom';
@@ -12,8 +12,10 @@ import ProfileModal from './ProfileModal';
 import SearchOverlay from './SearchOverlay';
 import { PitCoinIcon } from '../common/F1Icons';
 
+import { useAuth } from '../../contexts/AuthContext';
+
 const GAMES_LIST = [
-  { to: '/strategy', label: 'Strategy Master', desc: 'Gana la carrera desde el muro de boxes', icon: Compass, color: '#e10600' },
+  { to: '/daily', label: 'Daily Challenge', desc: 'Reto oficial diario con PitCoins', icon: Calendar, color: '#e10600' },
   { to: '/quiz', label: 'Quiz Master', desc: 'Trivia procedural multinivel', icon: Zap, color: '#facc15' },
   { to: '/driverle', label: 'Driverle', desc: 'Adivina el piloto misterioso', icon: Target, color: '#00d2be' },
   { to: '/reaction', label: 'Reaction Test', desc: 'Semáforo de salida oficial FIA', icon: Timer, color: '#e10600' },
@@ -25,11 +27,12 @@ const GAMES_LIST = [
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { setCurrentUser, currentUser, coins } = useStore();
+  const { user, profile } = useAuth();
+  const { coins } = useStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isGamesOpen, setIsGamesOpen] = useState(false);
-  const [profileModalTab, setProfileModalTab] = useState<'stats' | 'security'>('stats');
+  const [profileModalTab, setProfileModalTab] = useState<'stats' | 'profile' | 'security'>('stats');
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const gamesDropdownRef = useRef<HTMLDivElement>(null);
@@ -56,18 +59,6 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     setIsGamesOpen(false);
   }, [location.pathname]);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }: any) => {
-      setCurrentUser(session?.user ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      setCurrentUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [setCurrentUser]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -127,6 +118,27 @@ const Navbar: React.FC = () => {
                   <Radio size={13} className={isActive ? 'text-black' : 'text-[#e10600] animate-pulse'} />
                   <span>F1 REAL</span>
                   {isActive && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#e10600]" />}
+                </>
+              )}
+            </NavLink>
+
+            {/* 2.5. DAILY CHALLENGE (Official daily hub) */}
+            <NavLink 
+              to="/daily" 
+              className={({ isActive }) => 
+                `flex items-center gap-2 px-4 py-2 text-[11px] font-f1 tracking-[0.14em] uppercase transition-all rounded-xs relative whitespace-nowrap ${
+                  isActive 
+                    ? 'bg-[#e10600] text-white shadow-md font-bold' 
+                    : 'text-amber-400 hover:text-white hover:bg-white/5'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <Calendar size={13} className={isActive ? 'text-white' : 'text-amber-400'} />
+                  <span>DAILY</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#e10600] animate-ping" />
+                  {isActive && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />}
                 </>
               )}
             </NavLink>
@@ -246,10 +258,19 @@ const Navbar: React.FC = () => {
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsAuthOpen(!isAuthOpen)}
-                className={`transition-colors ${isAuthOpen || currentUser ? 'text-white' : 'text-white/70 hover:text-white'}`}
+                className={`transition-colors flex items-center gap-2 ${isAuthOpen || user ? 'text-white' : 'text-white/70 hover:text-white'}`}
                 title="Perfil de Piloto"
               >
-                <User size={18} strokeWidth={1.5} />
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all ${
+                  user ? 'bg-[#FF1E00]/20 border-[#FF1E00] text-[#FF1E00]' : 'border-white/20 text-white/70 hover:border-white/50'
+                }`}>
+                  <User size={15} strokeWidth={1.8} />
+                </div>
+                {user && (
+                  <span className="hidden xl:inline-block text-[10px] font-mono font-bold tracking-wider text-white truncate max-w-[100px]">
+                    {profile?.display_name || profile?.username || user.email?.split('@')[0]}
+                  </span>
+                )}
               </button>
 
               <AnimatePresence>
@@ -262,10 +283,10 @@ const Navbar: React.FC = () => {
                     className="absolute right-0 top-full mt-4 bg-[#0a0a0a] border border-white/10 shadow-2xl z-[60] overflow-hidden"
                   >
                     <AuthDropdown 
-                      user={currentUser} 
+                      user={user} 
                       onClose={() => setIsAuthOpen(false)} 
                       onOpenSettings={() => {
-                        setProfileModalTab('stats');
+                        setProfileModalTab('profile');
                         setIsSettingsOpen(true);
                         setIsAuthOpen(false);
                       }}
@@ -281,7 +302,7 @@ const Navbar: React.FC = () => {
       <ProfileModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
-        user={currentUser} 
+        user={user} 
         initialTab={profileModalTab}
       />
 

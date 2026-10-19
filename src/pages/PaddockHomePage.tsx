@@ -3,19 +3,19 @@ import { Link } from 'react-router-dom';
 import Hero from '../components/home/Hero';
 import LogoLoop from '../components/common/LogoLoop';
 import { Footer } from '../components/layout/Footer';
-import { Radio, Zap, Target, MapPin, Trophy, ArrowRight, Flame, Eye, Timer, Compass } from 'lucide-react';
+import { Radio, Zap, Target, MapPin, Trophy, ArrowRight, Flame, Eye, Timer, Compass, Calendar, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const PaddockHomePage: React.FC = () => {
   const modes = [
     {
-      to: '/strategy',
-      tag: 'PIT WALL TACTICS',
-      title: 'STRATEGY MASTER',
-      desc: 'Tu trabajo no es conducir. Tu trabajo es ganar desde el muro de boxes decidiendo paradas, undercut/overcut, ritmo y gestión meteorológica.',
-      icon: Compass,
+      to: '/daily',
+      tag: 'OFFICIAL FIA CALENDAR',
+      title: 'DAILY CHALLENGE',
+      desc: 'El reto oficial del día para toda la comunidad: supera el objetivo, mantén tu racha diaria y gana PitCoins para el ranking mundial.',
+      icon: Calendar,
       accent: '#e10600',
-      badge: 'NUEVO JUEGO',
+      badge: 'RETO DIARIO',
       pulse: true,
     },
     {

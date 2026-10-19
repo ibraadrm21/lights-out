@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Layers, RotateCcw, MapPin, Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react';
+import { RotateCcw, Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface GoogleMapPickerProps {
   onPinSelect: (lat: number, lng: number) => void;
@@ -9,9 +9,10 @@ interface GoogleMapPickerProps {
   actualLocation: { lat: number; lng: number; name: string } | null;
   isRevealed: boolean;
   disabled?: boolean;
+  className?: string;
+  onToggleExpand?: () => void;
+  isExpanded?: boolean;
 }
-
-type MapProvider = 'google-hybrid' | 'google-roadmap' | 'carto-dark';
 
 export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
   onPinSelect,
@@ -19,6 +20,9 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
   actualLocation,
   isRevealed,
   disabled = false,
+  className,
+  onToggleExpand,
+  isExpanded: externalExpanded,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -27,41 +31,18 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
   const lineRef = useRef<L.Polyline | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
 
-  const [mapProvider, setMapProvider] = useState<MapProvider>('google-hybrid');
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-  // High-availability tile provider configurations with subdomain load balancing
-  const getLayerConfig = (provider: MapProvider) => {
-    switch (provider) {
-      case 'google-roadmap':
-        return {
-          url: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-          options: {
-            subdomains: ['0', '1', '2', '3'],
-            attribution: '&copy; Google Maps Telemetry',
-            maxZoom: 20,
-          },
-        };
-      case 'carto-dark':
-        return {
-          url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-          options: {
-            subdomains: ['a', 'b', 'c', 'd'],
-            attribution: '&copy; CARTO F1 Dark Telemetry',
-            maxZoom: 19,
-          },
-        };
-      case 'google-hybrid':
-      default:
-        return {
-          url: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-          options: {
-            subdomains: ['0', '1', '2', '3'],
-            attribution: '&copy; Google Satellite Imagery',
-            maxZoom: 20,
-          },
-        };
-    }
+  // Clean Google Streets / Roadmap tile configuration
+  const getLayerConfig = () => {
+    return {
+      url: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+      options: {
+        subdomains: ['0', '1', '2', '3'],
+        attribution: '&copy; Google Maps',
+        maxZoom: 20,
+      },
+    };
   };
 
   // Pixel-perfect Pin Icon: (16, 46) is exactly at the needle tip without internal translation offsets
@@ -103,8 +84,8 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
         zoomControl: false,
       });
 
-      // Initial Layer
-      const cfg = getLayerConfig(mapProvider);
+      // Initial Layer: Google Streets / Roadmap
+      const cfg = getLayerConfig();
       const tileLayer = L.tileLayer(cfg.url, cfg.options).addTo(map);
       tileLayerRef.current = tileLayer;
 
@@ -146,22 +127,6 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
       }
     };
   }, []);
-
-  // 2. Switch Tile Provider
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-
-    const cfg = getLayerConfig(mapProvider);
-    if (tileLayerRef.current) {
-      map.removeLayer(tileLayerRef.current);
-    }
-
-    const newLayer = L.tileLayer(cfg.url, cfg.options).addTo(map);
-    tileLayerRef.current = newLayer;
-
-    setTimeout(() => map.invalidateSize(), 100);
-  }, [mapProvider]);
 
   // 3. User Guess Marker (Click & Drag support)
   useEffect(() => {
@@ -256,11 +221,17 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
 
   // Expand / minimize trigger
   const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
+    if (onToggleExpand) {
+      onToggleExpand();
+    } else {
+      setIsExpanded(!isExpanded);
+    }
     setTimeout(() => {
       mapInstanceRef.current?.invalidateSize();
     }, 200);
   };
+
+  const effectiveExpanded = externalExpanded !== undefined ? externalExpanded : isExpanded;
 
   const handleResetView = () => {
     if (mapInstanceRef.current) {
@@ -278,8 +249,8 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
 
   return (
     <div
-      className={`relative w-full bg-[#080808] border border-white/10 overflow-hidden shadow-2xl transition-all duration-300 ${
-        isExpanded ? 'h-[580px] sm:h-[640px]' : 'h-[380px] sm:h-[460px]'
+      className={className || `relative w-full bg-[#080808] border border-white/10 overflow-hidden shadow-2xl transition-all duration-300 ${
+        effectiveExpanded ? 'h-[580px] sm:h-[640px]' : 'h-[380px] sm:h-[460px]'
       }`}
     >
       {/* Interactive Map DOM Container with crosshair cursor */}
@@ -289,65 +260,32 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
         style={{ cursor: !isRevealed && !disabled ? 'crosshair' : 'grab' }}
       />
 
-      {/* Top Floating Controls: Tile Switcher & Centering */}
-      <div className="absolute top-3 left-3 z-20 flex flex-wrap items-center gap-2">
-        <div className="flex bg-black/90 border border-white/20 p-0.5 backdrop-blur-md shadow-xl">
-          <button
-            type="button"
-            onClick={() => setMapProvider('google-hybrid')}
-            className={`px-2.5 py-1 text-[8px] font-mono font-bold tracking-widest uppercase transition-all ${
-              mapProvider === 'google-hybrid' ? 'bg-[#fed100] text-black' : 'text-white/70 hover:text-white'
-            }`}
-          >
-            Satélite
-          </button>
-          <button
-            type="button"
-            onClick={() => setMapProvider('google-roadmap')}
-            className={`px-2.5 py-1 text-[8px] font-mono font-bold tracking-widest uppercase transition-all ${
-              mapProvider === 'google-roadmap' ? 'bg-[#fed100] text-black' : 'text-white/70 hover:text-white'
-            }`}
-          >
-            Calles
-          </button>
-          <button
-            type="button"
-            onClick={() => setMapProvider('carto-dark')}
-            className={`px-2.5 py-1 text-[8px] font-mono font-bold tracking-widest uppercase transition-all ${
-              mapProvider === 'carto-dark' ? 'bg-[#fed100] text-black' : 'text-white/70 hover:text-white'
-            }`}
-          >
-            Dark F1
-          </button>
-        </div>
-
+      {/* Clean minimal controls: Reset & Expand on top-left, Zoom on top-right */}
+      <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5">
         <button
           type="button"
           onClick={handleResetView}
-          className="px-3 py-1.5 bg-black/90 hover:bg-black text-white font-mono text-[9px] font-bold tracking-widest uppercase border border-white/20 flex items-center gap-1.5 backdrop-blur-md shadow-lg transition-all"
+          className="p-1.5 bg-black/85 hover:bg-black text-white/80 hover:text-white rounded border border-white/20 backdrop-blur-md shadow-md transition-all active:scale-95"
           title="Centrar vista mundial"
         >
-          <RotateCcw size={11} />
-          <span className="hidden sm:inline">Centrar</span>
+          <RotateCcw size={14} />
         </button>
-
         <button
           type="button"
           onClick={toggleExpand}
-          className="px-3 py-1.5 bg-black/90 hover:bg-black text-[#fed100] font-mono text-[9px] font-bold tracking-widest uppercase border border-white/20 flex items-center gap-1.5 backdrop-blur-md shadow-lg transition-all"
-          title={isExpanded ? 'Reducir mapa' : 'Expandir mapa'}
+          className="p-1.5 bg-black/85 hover:bg-black text-[#fed100] rounded border border-white/20 backdrop-blur-md shadow-md transition-all active:scale-95"
+          title={effectiveExpanded ? 'Reducir mapa' : 'Expandir mapa'}
         >
-          {isExpanded ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
-          <span className="hidden sm:inline">{isExpanded ? 'Compactar' : 'Expandir'}</span>
+          {effectiveExpanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
         </button>
       </div>
 
-      {/* Top Right Zoom Controls */}
-      <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5">
+      {/* Top Right Minimal Zoom Controls */}
+      <div className="absolute top-2.5 right-2.5 z-20 flex flex-col gap-1">
         <button
           type="button"
           onClick={handleZoomIn}
-          className="w-8 h-8 bg-black/90 hover:bg-black text-white border border-white/20 flex items-center justify-center backdrop-blur-md shadow-lg transition-all active:scale-95"
+          className="w-7 h-7 bg-black/85 hover:bg-black text-white rounded border border-white/20 flex items-center justify-center backdrop-blur-md shadow-md transition-all active:scale-95"
           title="Acercar (+)"
         >
           <ZoomIn size={14} />
@@ -355,34 +293,11 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({
         <button
           type="button"
           onClick={handleZoomOut}
-          className="w-8 h-8 bg-black/90 hover:bg-black text-white border border-white/20 flex items-center justify-center backdrop-blur-md shadow-lg transition-all active:scale-95"
+          className="w-7 h-7 bg-black/85 hover:bg-black text-white rounded border border-white/20 flex items-center justify-center backdrop-blur-md shadow-md transition-all active:scale-95"
           title="Alejar (-)"
         >
           <ZoomOut size={14} />
         </button>
-      </div>
-
-      {/* Bottom Status & Selected Coordinates Ribbon */}
-      <div className="absolute bottom-3 left-3 right-3 z-20 flex justify-between items-center pointer-events-none gap-2">
-        <div className="bg-black/90 backdrop-blur-md px-3.5 py-1.5 border border-white/15 text-[8px] sm:text-[9px] font-mono text-white tracking-widest uppercase flex items-center gap-2 shadow-2xl">
-          {selectedPin ? (
-            <>
-              <MapPin size={12} className="text-[#fed100] animate-bounce" />
-              <span>
-                PIN SELECCIONADO: <strong className="text-[#fed100]">{selectedPin.lat.toFixed(4)}°, {selectedPin.lng.toFixed(4)}°</strong> (Arrástralo para afinar)
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="w-2 h-2 rounded-full bg-[#fed100] animate-ping" />
-              <span>HAZ CLIC EN CUALQUIER PUNTO DEL PLANETA PARA COLOCAR TU PREDICCIÓN</span>
-            </>
-          )}
-        </div>
-
-        <div className="bg-black/90 backdrop-blur-md px-2.5 py-1.5 border border-white/10 text-[7px] font-mono text-white/50 uppercase tracking-widest hidden sm:block">
-          CALIBRACIÓN MILIMÉTRICA ACTIVA
-        </div>
       </div>
     </div>
   );

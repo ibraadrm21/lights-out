@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { 
   Home, Radio, Gamepad2, Trophy, User, X, 
-  Zap, Target, Timer, Flame, Eye, MapPin, Compass 
+  Zap, Target, Timer, Flame, Eye, MapPin, Compass, Calendar 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../store/useStore';
+import { useAuth } from '../../contexts/AuthContext';
 import ProfileModal from './ProfileModal';
 import { PitCoinIcon } from '../common/F1Icons';
 
 const GAMES_LIST = [
-  { to: '/strategy', label: 'Strategy Master', desc: 'Gana la carrera desde el muro de boxes', icon: Compass, color: '#e10600' },
+  { to: '/daily', label: 'Daily Challenge', desc: 'Reto diario oficial con PitCoins', icon: Calendar, color: '#e10600' },
   { to: '/quiz', label: 'Quiz Master', desc: 'Trivia procedural multinivel', icon: Zap, color: '#facc15' },
   { to: '/driverle', label: 'Driverle', desc: 'Adivina el piloto misterioso', icon: Target, color: '#00d2be' },
   { to: '/reaction', label: 'Reaction Test', desc: 'Semáforo de salida oficial FIA', icon: Timer, color: '#e10600' },
@@ -20,7 +21,8 @@ const GAMES_LIST = [
 ];
 
 const MobileNav: React.FC = () => {
-  const { currentUser, coins } = useStore();
+  const { user } = useAuth();
+  const { coins } = useStore();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isGamesSheetOpen, setIsGamesSheetOpen] = useState(false);
   const location = useLocation();
@@ -54,6 +56,15 @@ const MobileNav: React.FC = () => {
           >
             <Radio size={16} strokeWidth={2} className="animate-pulse" />
             <span className="text-[7px] font-mono font-bold tracking-widest uppercase">F1 Real</span>
+          </NavLink>
+
+          {/* Daily Challenge */}
+          <NavLink 
+            to="/daily" 
+            className={({ isActive }) => `flex flex-col items-center gap-1 p-1.5 transition-colors ${isActive ? 'text-amber-400 font-bold' : 'text-amber-400/80 hover:text-amber-400'}`}
+          >
+            <Calendar size={16} strokeWidth={2} />
+            <span className="text-[7px] font-mono font-bold tracking-widest uppercase">Daily</span>
           </NavLink>
 
           {/* Games Menu Button */}
@@ -166,7 +177,7 @@ const MobileNav: React.FC = () => {
       <ProfileModal 
         isOpen={isProfileOpen} 
         onClose={() => setIsProfileOpen(false)} 
-        user={currentUser} 
+        user={user} 
         initialTab="stats"
       />
     </>

@@ -47,6 +47,7 @@ class LocalQueryBuilder {
   private orderField?: string;
   private isAscending = true;
   private isSingle = false;
+  private limitCount?: number;
 
   constructor(tableName: string) {
     this.tableName = tableName;
@@ -65,6 +66,16 @@ class LocalQueryBuilder {
     this.orderField = column;
     this.isAscending = ascending;
     return this;
+  }
+
+  limit(n: number) {
+    this.limitCount = n;
+    return this;
+  }
+
+  maybeSingle() {
+    this.isSingle = true;
+    return this.execute();
   }
 
   single() {
@@ -114,6 +125,10 @@ class LocalQueryBuilder {
         if (valA > valB) return this.isAscending ? 1 : -1;
         return 0;
       });
+    }
+
+    if (this.limitCount !== undefined && this.limitCount > 0) {
+      items = items.slice(0, this.limitCount);
     }
 
     if (this.isSingle) {
@@ -206,8 +221,14 @@ export const createMockSupabase = () => {
   };
 };
 
-export const supabase: any = createMockSupabase();
-export const supabaseAdmin: any = createMockSupabase();
+import { supabase as realSupabase } from '../utils/supabase';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
+
+export const supabase: any = isSupabaseConfigured ? realSupabase : createMockSupabase();
+export const supabaseAdmin: any = isSupabaseConfigured ? realSupabase : createMockSupabase();
 
 export const getProducts = async () => {
   return [];
