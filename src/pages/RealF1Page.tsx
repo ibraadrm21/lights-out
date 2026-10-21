@@ -4,8 +4,8 @@ import { Footer } from '../components/layout/Footer';
 
 export const RealF1Page: React.FC = () => {
   return (
-    <main className="bg-black min-h-screen text-white pt-20">
-      <div className="py-6">
+    <main className="bg-[#15151E] min-h-screen text-white pt-20">
+      <div className="py-2 sm:py-6">
         <RealF1Hub />
       </div>
       <Footer />

@@ -1,477 +1,668 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Flag, RefreshCw, Radio, CheckCircle, AlertTriangle, Shield, Gauge } from 'lucide-react';
-import { openf1, OpenF1ChampionshipDriver, OpenF1ChampionshipTeam, OpenF1RaceResult, OpenF1Session } from '../../lib/openf1Service';
-import { TeamBadge } from './TeamBadge';
-import { getTeamMeta } from '../../lib/teamData';
-import { F1CarIcon, ChequeredFlagIcon } from '../common/F1Icons';
+import { 
+  Trophy, Radio, Search, Users, Shield, Gauge, 
+  Wrench, MapPin, Activity, LayoutGrid, X, CheckCircle,
+  Home, ChevronRight, AlertCircle, ArrowLeft, Calendar, Flag,
+  FileText, Cpu, GraduationCap, Award, Database
+} from 'lucide-react';
+import { 
+  openf1, OpenF1ChampionshipDriver, OpenF1ChampionshipTeam, 
+  OpenF1RaceResult, OpenF1Session 
+} from '../../lib/openf1Service';
+import { 
+  getDriverById, getConstructorById, getCarById, 
+  getTechnicalStaffById, getCircuitById,
+  F1_DRIVERS_DATA, F1_CONSTRUCTORS_DATA, F1_CARS_DATA,
+  F1_TECHNICAL_STAFF_DATA, F1_CIRCUITS_DATA
+} from '../../data/f1EncyclopediaData';
+
+// Wiki Encyclopedia Components
+import { WikiPortalHome } from './wiki/WikiPortalHome';
+import { CategoryIndexView, WikiCategory } from './wiki/CategoryIndexView';
+import { DriverWikiArticle } from './wiki/DriverWikiArticle';
+import { TeamWikiArticle } from './wiki/TeamWikiArticle';
+import { CarWikiArticle } from './wiki/CarWikiArticle';
+import { StaffWikiArticle } from './wiki/StaffWikiArticle';
+import { CircuitWikiArticle } from './wiki/CircuitWikiArticle';
+import { SeasonWikiArticle } from './wiki/SeasonWikiArticle';
+import { GrandPrixWikiArticle } from './wiki/GrandPrixWikiArticle';
+import { RegulationsWikiArticle } from './wiki/RegulationsWikiArticle';
+import { TechnicalWikiArticle } from './wiki/TechnicalWikiArticle';
+import { JuniorCategoryArticle } from './wiki/JuniorCategoryArticle';
+import { HistoricalRecordsView } from './wiki/HistoricalRecordsView';
+import { SourceRegistryView } from './wiki/SourceRegistryView';
+import { WikiLink } from './wiki/WikiLink';
+
+// Advanced Race Center Component
+import { AdvancedRaceCenter } from './racecenter/AdvancedRaceCenter';
+import { SelectedEntity, EntityDetailModal } from './encyclopedia/EntityDetailModal';
+
+// Precomputed historical seasons index for quick browsing
+const HISTORICAL_SEASONS = [
+  { year: 2024, champDriver: 'Max Verstappen', champTeam: 'McLaren', races: 24 },
+  { year: 2023, champDriver: 'Max Verstappen', champTeam: 'Red Bull Racing', races: 22 },
+  { year: 2022, champDriver: 'Max Verstappen', champTeam: 'Red Bull Racing', races: 22 },
+  { year: 2021, champDriver: 'Max Verstappen', champTeam: 'Mercedes', races: 22 },
+  { year: 2020, champDriver: 'Lewis Hamilton', champTeam: 'Mercedes', races: 17 },
+  { year: 2019, champDriver: 'Lewis Hamilton', champTeam: 'Mercedes', races: 21 },
+  { year: 2018, champDriver: 'Lewis Hamilton', champTeam: 'Mercedes', races: 21 },
+  { year: 2017, champDriver: 'Lewis Hamilton', champTeam: 'Mercedes', races: 20 },
+  { year: 2016, champDriver: 'Nico Rosberg', champTeam: 'Mercedes', races: 21 },
+  { year: 2015, champDriver: 'Lewis Hamilton', champTeam: 'Mercedes', races: 19 },
+  { year: 2014, champDriver: 'Lewis Hamilton', champTeam: 'Mercedes', races: 19 },
+  { year: 2013, champDriver: 'Sebastian Vettel', champTeam: 'Red Bull Racing', races: 19 },
+  { year: 2012, champDriver: 'Sebastian Vettel', champTeam: 'Red Bull Racing', races: 20 },
+  { year: 2011, champDriver: 'Sebastian Vettel', champTeam: 'Red Bull Racing', races: 19 },
+  { year: 2010, champDriver: 'Sebastian Vettel', champTeam: 'Red Bull Racing', races: 19 },
+  { year: 2009, champDriver: 'Jenson Button', champTeam: 'Brawn GP', races: 17 },
+  { year: 2008, champDriver: 'Lewis Hamilton', champTeam: 'Ferrari', races: 18 },
+  { year: 2007, champDriver: 'Kimi Räikkönen', champTeam: 'Ferrari', races: 17 },
+  { year: 2006, champDriver: 'Fernando Alonso', champTeam: 'Renault', races: 18 },
+  { year: 2005, champDriver: 'Fernando Alonso', champTeam: 'Renault', races: 19 },
+  { year: 2004, champDriver: 'Michael Schumacher', champTeam: 'Ferrari', races: 18 },
+  { year: 2003, champDriver: 'Michael Schumacher', champTeam: 'Ferrari', races: 16 },
+  { year: 2002, champDriver: 'Michael Schumacher', champTeam: 'Ferrari', races: 17 },
+  { year: 2001, champDriver: 'Michael Schumacher', champTeam: 'Ferrari', races: 17 },
+  { year: 2000, champDriver: 'Michael Schumacher', champTeam: 'Ferrari', races: 17 },
+  { year: 1994, champDriver: 'Michael Schumacher', champTeam: 'Williams', races: 16 },
+  { year: 1991, champDriver: 'Ayrton Senna', champTeam: 'McLaren', races: 16 },
+  { year: 1988, champDriver: 'Ayrton Senna', champTeam: 'McLaren', races: 16 },
+  { year: 1976, champDriver: 'James Hunt', champTeam: 'Ferrari', races: 16 },
+  { year: 1950, champDriver: 'Giuseppe Farina', champTeam: 'Alfa Romeo', races: 7 },
+];
 
 export const RealF1Hub: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'drivers' | 'teams' | 'results'>('drivers');
-  const [driverStandings, setDriverStandings] = useState<OpenF1ChampionshipDriver[]>([]);
-  const [teamStandings, setTeamStandings] = useState<OpenF1ChampionshipTeam[]>([]);
-  const [raceResults, setRaceResults] = useState<OpenF1RaceResult[]>([]);
+  const { category, id } = useParams<{ category?: string; id?: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // Selected decade filter for seasons directory
+  const [selectedDecade, setSelectedDecade] = useState<string>('2020s');
+
+  // Live OpenF1 Data Feeds (for portal summary status)
   const [session, setSession] = useState<OpenF1Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>('');
 
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [drivers, teams, results, sess] = await Promise.all([
-        openf1.getDriverStandings(),
-        openf1.getTeamStandings(),
-        openf1.getLatestRaceResults(),
-        openf1.getLatestSession(),
-      ]);
-
-      setDriverStandings(drivers);
-      setTeamStandings(teams);
-      setRaceResults(results);
-      setSession(sess);
-      setLastUpdated(new Date().toLocaleTimeString());
-    } catch (e) {
-      console.error('Error loading OpenF1 live data:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Optional modal for backwards-compatible interactions
+  const [selectedEntity, setSelectedEntity] = useState<SelectedEntity | null>(null);
 
   useEffect(() => {
-    loadData();
+    openf1.getLatestSession()
+      .then(sess => setSession(sess))
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
-  return (
-    <section id="f1-real" className="py-24 px-6 w-full max-w-7xl mx-auto border-b border-white/5">
-      {/* Header Info */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
-        <div>
-          <div className="flex flex-wrap items-center gap-3 mb-2">
-            <span className="text-[9px] font-mono font-bold tracking-[0.4em] text-emerald-400 uppercase bg-emerald-500/10 px-2.5 py-1 border border-emerald-500/30 flex items-center gap-1.5">
-              <Radio size={12} className="animate-pulse text-emerald-400" />
-              OPENF1 LIVE DATA FEED // OFICIAL FIA
-            </span>
-            {session && (
-              <span className="text-[9px] font-mono tracking-widest text-white/50 uppercase px-2.5 py-1 bg-white/5 border border-white/10">
-                {session.circuit_short_name} • {session.country_name}
-              </span>
-            )}
+  // Close search dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Global search matching across all entities, seasons, regulations and tech topics
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim() || searchQuery.length < 2) return [];
+    const q = searchQuery.toLowerCase().trim();
+
+    const results: {
+      type: string;
+      id: string;
+      title: string;
+      subtitle: string;
+      badge: string;
+      customPath?: string;
+    }[] = [];
+
+    // Match Drivers
+    F1_DRIVERS_DATA.forEach(d => {
+      if (d.fullName.toLowerCase().includes(q) || d.country.toLowerCase().includes(q) || String(d.number) === q || d.acronym.toLowerCase() === q) {
+        results.push({
+          type: 'pilotos',
+          id: d.id,
+          title: `${d.fullName} #${d.number}`,
+          subtitle: `${d.teamName} • ${d.country}`,
+          badge: 'Piloto',
+        });
+      }
+    });
+
+    // Match Constructors
+    F1_CONSTRUCTORS_DATA.forEach(c => {
+      if (c.officialName.toLowerCase().includes(q) || c.shortName.toLowerCase().includes(q) || c.powerUnitManufacturer.toLowerCase().includes(q)) {
+        results.push({
+          type: 'escuderias',
+          id: c.id,
+          title: c.shortName,
+          subtitle: `${c.officialName} (${c.powerUnitManufacturer})`,
+          badge: 'Escudería',
+        });
+      }
+    });
+
+    // Match Cars
+    F1_CARS_DATA.forEach(car => {
+      if (car.name.toLowerCase().includes(q) || car.teamName.toLowerCase().includes(q) || car.powerUnit.toLowerCase().includes(q)) {
+        results.push({
+          type: 'monoplazas',
+          id: car.id,
+          title: car.name,
+          subtitle: `${car.teamName} • ${car.powerUnit}`,
+          badge: 'Monoplaza',
+        });
+      }
+    });
+
+    // Match Technical Staff
+    F1_TECHNICAL_STAFF_DATA.forEach(s => {
+      if (s.name.toLowerCase().includes(q) || s.teamName.toLowerCase().includes(q) || s.roleTitle.toLowerCase().includes(q)) {
+        results.push({
+          type: 'personal',
+          id: s.id,
+          title: s.name,
+          subtitle: `${s.roleTitle} (${s.teamName})`,
+          badge: 'Técnico',
+        });
+      }
+    });
+
+    // Match Circuits
+    F1_CIRCUITS_DATA.forEach(c => {
+      if (c.circuitName.toLowerCase().includes(q) || c.country.toLowerCase().includes(q) || c.city.toLowerCase().includes(q)) {
+        results.push({
+          type: 'circuitos',
+          id: c.id,
+          title: c.circuitName,
+          subtitle: `Ronda #${c.round} • ${c.city}, ${c.country}`,
+          badge: 'Circuito',
+        });
+      }
+    });
+
+    // Match Regulations & Topics
+    if ('reglamento'.includes(q) || 'parc ferme'.includes(q) || 'limites'.includes(q) || 'safety car'.includes(q) || 'sanciones'.includes(q) || 'cost cap'.includes(q)) {
+      results.push({
+        type: 'reglamento',
+        id: '',
+        title: 'Reglamento y Comisarios FIA',
+        subtitle: 'Código deportivo, técnico y archivo de sanciones',
+        badge: 'Reglamento',
+        customPath: '/f1-real/reglamento',
+      });
+    }
+
+    // Match Technology & Engineering
+    if ('tecnologia'.includes(q) || 'efecto suelo'.includes(q) || 'marsopeo'.includes(q) || 'porpoising'.includes(q) || 'hibrido'.includes(q) || 'frenos'.includes(q) || 'halo'.includes(q)) {
+      results.push({
+        type: 'tecnologia',
+        id: '',
+        title: 'Tecnología e Ingeniería F1',
+        subtitle: 'Aerodinámica Venturi, motor híbrido V6, cinemática',
+        badge: 'Ingeniería',
+        customPath: '/f1-real/tecnologia',
+      });
+    }
+
+    // Match Junior & Academies
+    if ('junior'.includes(q) || 'f2'.includes(q) || 'formula 2'.includes(q) || 'formula 3'.includes(q) || 'superlicencia'.includes(q) || 'academia'.includes(q)) {
+      results.push({
+        type: 'junior',
+        id: '',
+        title: 'Categorías Junior y Academias (F2/F3)',
+        subtitle: 'Pirámide FIA y programas de desarrollo de talento',
+        badge: 'Feeder',
+        customPath: '/f1-real/junior',
+      });
+    }
+
+    // Match Seasons (e.g. 1950 - 2024)
+    const yearMatch = parseInt(q, 10);
+    if (!isNaN(yearMatch) && yearMatch >= 1950 && yearMatch <= 2025) {
+      results.push({
+        type: 'temporadas',
+        id: String(yearMatch),
+        title: `Temporada Oficial ${yearMatch}`,
+        subtitle: `Campeonato Mundial de Fórmula 1 de la FIA ${yearMatch}`,
+        badge: 'Temporada',
+        customPath: `/f1-real/temporadas/${yearMatch}`,
+      });
+    }
+
+    // Match Historical Records
+    if ('records'.includes(q) || 'estadisticas'.includes(q) || 'victorias'.includes(q) || 'campeones'.includes(q) || 'schumacher'.includes(q) || 'hamilton'.includes(q) || 'senna'.includes(q)) {
+      results.push({
+        type: 'records',
+        id: '',
+        title: 'Récords y Estadísticas Históricas',
+        subtitle: 'Palmarés de victorias, poles, títulos y evolución de puntos',
+        badge: 'Récords',
+        customPath: '/f1-real/records',
+      });
+    }
+
+    // Match Source Registry
+    if ('fuentes'.includes(q) || 'openf1'.includes(q) || 'jolpica'.includes(q) || 'api'.includes(q) || 'licencia'.includes(q)) {
+      results.push({
+        type: 'fuentes',
+        id: '',
+        title: 'Registro Central de Fuentes y Legalidad',
+        subtitle: 'Términos de servicio, APIs abiertas y estado operativo',
+        badge: 'Legal',
+        customPath: '/f1-real/fuentes',
+      });
+    }
+
+    return results.slice(0, 10);
+  }, [searchQuery]);
+
+  // Main navigation items
+  const navItems = [
+    { id: 'portal', label: 'Portada', icon: Home, path: '/f1-real' },
+    { id: 'temporadas', label: 'Temporadas (1950-2024)', icon: Calendar, path: '/f1-real/temporadas' },
+    { id: 'grand-prix', label: 'Grandes Premios', icon: Flag, path: '/f1-real/grand-prix' },
+    { id: 'pilotos', label: 'Pilotos (20)', icon: Users, path: '/f1-real/pilotos' },
+    { id: 'escuderias', label: 'Escuderías (10)', icon: Shield, path: '/f1-real/escuderias' },
+    { id: 'monoplazas', label: 'Monoplazas (10)', icon: Gauge, path: '/f1-real/monoplazas' },
+    { id: 'personal', label: 'Personal Técnico', icon: Wrench, path: '/f1-real/personal' },
+    { id: 'circuitos', label: 'Circuitos (24)', icon: MapPin, path: '/f1-real/circuitos' },
+    { id: 'records', label: 'Récords Históricos', icon: Award, path: '/f1-real/records' },
+    { id: 'reglamento', label: 'Reglamento FIA', icon: FileText, path: '/f1-real/reglamento' },
+    { id: 'tecnologia', label: 'Tecnología', icon: Cpu, path: '/f1-real/tecnologia' },
+    { id: 'junior', label: 'Feeder F2/F3', icon: GraduationCap, path: '/f1-real/junior' },
+    { id: 'fuentes', label: 'Fuentes & APIs', icon: Database, path: '/f1-real/fuentes' },
+    { id: 'race-center', label: 'Race Center Live', icon: Radio, path: '/f1-real/race-center' },
+  ];
+
+  const currentTab = useMemo(() => {
+    if (!category) return 'portal';
+    if (category === 'estadisticas' || category === 'clasificacion') return 'records';
+    return category;
+  }, [category]);
+
+  // Render dedicated individual entity articles
+  const renderArticle = () => {
+    if (!category || !id) return null;
+
+    if (category === 'pilotos') {
+      const driver = getDriverById(id);
+      if (!driver) {
+        return (
+          <div className="bg-[#1b1b26] border border-red-500/30 p-8 text-center space-y-4">
+            <AlertCircle size={36} className="text-red-400 mx-auto" />
+            <h2 className="text-xl font-bold font-syne text-white">Piloto No Documentado</h2>
+            <p className="text-xs text-white/60">No se ha encontrado ningún piloto con el identificador "{id}".</p>
+            <button onClick={() => navigate('/f1-real/pilotos')} className="px-4 py-2 bg-[#FF1E00] text-white text-xs font-mono uppercase">
+              Ver Índice de Pilotos
+            </button>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-black font-syne uppercase tracking-tighter">
-            F1 <span className="text-[#e10600]">REAL</span> TELEMETRY
+        );
+      }
+      return <DriverWikiArticle driver={driver} />;
+    }
+
+    if (category === 'escuderias') {
+      const team = getConstructorById(id);
+      if (!team) {
+        return (
+          <div className="bg-[#1b1b26] border border-red-500/30 p-8 text-center space-y-4">
+            <AlertCircle size={36} className="text-red-400 mx-auto" />
+            <h2 className="text-xl font-bold font-syne text-white">Escudería No Documentada</h2>
+            <p className="text-xs text-white/60">No se ha encontrado ninguna escudería con el identificador "{id}".</p>
+            <button onClick={() => navigate('/f1-real/escuderias')} className="px-4 py-2 bg-[#FF1E00] text-white text-xs font-mono uppercase">
+              Ver Índice de Escuderías
+            </button>
+          </div>
+        );
+      }
+      return <TeamWikiArticle team={team} />;
+    }
+
+    if (category === 'monoplazas') {
+      const car = getCarById(id);
+      if (!car) {
+        return (
+          <div className="bg-[#1b1b26] border border-red-500/30 p-8 text-center space-y-4">
+            <AlertCircle size={36} className="text-red-400 mx-auto" />
+            <h2 className="text-xl font-bold font-syne text-white">Monoplaza No Documentado</h2>
+            <p className="text-xs text-white/60">No se ha encontrado ningún monoplaza con el identificador "{id}".</p>
+            <button onClick={() => navigate('/f1-real/monoplazas')} className="px-4 py-2 bg-[#FF1E00] text-white text-xs font-mono uppercase">
+              Ver Índice de Monoplazas
+            </button>
+          </div>
+        );
+      }
+      return <CarWikiArticle car={car} />;
+    }
+
+    if (category === 'personal') {
+      const staff = getTechnicalStaffById(id);
+      if (!staff) {
+        return (
+          <div className="bg-[#1b1b26] border border-red-500/30 p-8 text-center space-y-4">
+            <AlertCircle size={36} className="text-red-400 mx-auto" />
+            <h2 className="text-xl font-bold font-syne text-white">Personal Técnico No Documentado</h2>
+            <p className="text-xs text-white/60">No se ha encontrado ningún técnico con el identificador "{id}".</p>
+            <button onClick={() => navigate('/f1-real/personal')} className="px-4 py-2 bg-[#FF1E00] text-white text-xs font-mono uppercase">
+              Ver Índice de Personal Técnico
+            </button>
+          </div>
+        );
+      }
+      return <StaffWikiArticle staff={staff} />;
+    }
+
+    if (category === 'circuitos') {
+      const circuit = getCircuitById(id);
+      if (!circuit) {
+        return (
+          <div className="bg-[#1b1b26] border border-red-500/30 p-8 text-center space-y-4">
+            <AlertCircle size={36} className="text-red-400 mx-auto" />
+            <h2 className="text-xl font-bold font-syne text-white">Circuito No Documentado</h2>
+            <p className="text-xs text-white/60">No se ha encontrado ningún circuito con el identificador "{id}".</p>
+            <button onClick={() => navigate('/f1-real/circuitos')} className="px-4 py-2 bg-[#FF1E00] text-white text-xs font-mono uppercase">
+              Ver Calendario de Circuitos
+            </button>
+          </div>
+        );
+      }
+      return <CircuitWikiArticle circuit={circuit} />;
+    }
+
+    if (category === 'temporadas') {
+      const yearNum = parseInt(id, 10);
+      if (!isNaN(yearNum) && yearNum >= 1950 && yearNum <= 2025) {
+        return <SeasonWikiArticle year={yearNum} />;
+      }
+      return (
+        <div className="bg-[#1b1b26] border border-red-500/30 p-8 text-center space-y-4">
+          <AlertCircle size={36} className="text-red-400 mx-auto" />
+          <h2 className="text-xl font-bold font-syne text-white">Temporada No Válida</h2>
+          <p className="text-xs text-white/60">La temporada debe ser un año entre 1950 y 2024.</p>
+          <button onClick={() => navigate('/f1-real/temporadas')} className="px-4 py-2 bg-[#FF1E00] text-white text-xs font-mono uppercase">
+            Ver Archivo de Temporadas
+          </button>
+        </div>
+      );
+    }
+
+    if (category === 'grand-prix') {
+      const parts = id.split(/[-_]/).map(Number);
+      const year = parts[0] || 2024;
+      const round = parts[1] || 1;
+      return <GrandPrixWikiArticle year={year} round={round} />;
+    }
+
+    return null;
+  };
+
+  return (
+    <section id="f1-real" className="py-6 sm:py-12 px-4 sm:px-6 w-full max-w-7xl mx-auto min-h-screen">
+      {/* Top Encyclopedic Header Bar */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/10 pb-6">
+        <div>
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <span className="text-[10px] font-mono tracking-widest text-[#FF1E00] uppercase font-bold bg-[#FF1E00]/10 border border-[#FF1E00]/30 px-2 py-0.5">
+              ENCICLOPEDIA DIGITAL F1 REAL
+            </span>
+            <span className="text-white/30">•</span>
+            <span className="text-[10px] font-mono text-emerald-400 uppercase">
+              JOLPICA-F1 & OPENF1 INTEGRATED
+            </span>
+            <span className="text-white/30">•</span>
+            <span className="text-[10px] font-mono text-white/50 uppercase">
+              1950–2024 VERIFIED
+            </span>
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-black font-syne uppercase tracking-tight text-white flex items-center gap-2">
+            <span>LIGHTS OUT</span>
+            <span className="text-[#FF1E00]">F1 REAL</span>
           </h2>
         </div>
 
-        {/* Action Controls & Refresh */}
-        <div className="flex items-center gap-4">
-          {lastUpdated && (
-            <span className="text-[8px] font-mono text-white/40 uppercase hidden sm:inline">
-              SINCRONIZADO: {lastUpdated}
-            </span>
+        {/* Global Wiki Search Bar */}
+        <div ref={searchRef} className="w-full md:w-96 relative">
+          <div className="relative">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setIsSearchOpen(true);
+              }}
+              onFocus={() => setIsSearchOpen(true)}
+              placeholder="Buscar (piloto, equipo, circuito, año, técnica, reglamento)..."
+              className="w-full bg-[#1b1b26] border border-white/15 focus:border-[#FF1E00] text-xs font-mono text-white pl-9 pr-8 py-2.5 rounded-none placeholder:text-white/30 focus:outline-none transition-colors"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsSearchOpen(false);
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* Autocomplete Dropdown */}
+          {isSearchOpen && searchResults.length > 0 && (
+            <div className="absolute left-0 right-0 top-full mt-1 bg-[#1b1b26] border border-white/20 shadow-2xl z-50 divide-y divide-white/5 max-h-96 overflow-y-auto">
+              <div className="p-2 text-[10px] font-mono uppercase text-white/40 bg-black/40">
+                Artículos y Entidades Coincidentes ({searchResults.length})
+              </div>
+              {searchResults.map((res) => (
+                <button
+                  key={`${res.type}-${res.id}-${res.title}`}
+                  onClick={() => {
+                    if (res.customPath) {
+                      navigate(res.customPath);
+                    } else {
+                      navigate(`/f1-real/${res.type}/${res.id}`);
+                    }
+                    setIsSearchOpen(false);
+                    setSearchQuery('');
+                  }}
+                  className="w-full text-left p-2.5 hover:bg-white/10 transition-colors flex items-center justify-between gap-3"
+                >
+                  <div>
+                    <div className="text-xs font-semibold text-white font-syne">{res.title}</div>
+                    <div className="text-[10px] font-mono text-white/50">{res.subtitle}</div>
+                  </div>
+                  <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 bg-white/10 text-[#FF1E00] border border-white/10 whitespace-nowrap">
+                    {res.badge}
+                  </span>
+                </button>
+              ))}
+            </div>
           )}
-          <button
-            onClick={loadData}
-            disabled={loading}
-            className="px-4 py-2 bg-[#121212] hover:bg-[#1a1a1a] border border-white/10 text-white font-mono text-[9px] uppercase tracking-widest flex items-center gap-2 transition-all disabled:opacity-50"
-          >
-            <RefreshCw size={12} className={loading ? 'animate-spin text-emerald-400' : ''} />
-            <span>{loading ? 'Actualizando...' : 'Recargar Datos'}</span>
-          </button>
         </div>
       </div>
 
-      {/* Grand Prix Banner */}
-      {session && (
-        <div className="mb-8 p-6 bg-gradient-to-r from-[#121212] via-[#0d0d0d] to-[#0a0a0a] border border-white/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <span className="text-[8px] font-mono tracking-[0.3em] text-[#e10600] uppercase block mb-1">
-              ÚLTIMO GRAN PREMIO REGISTRADO ({session.year})
-            </span>
-            <h3 className="text-xl sm:text-2xl font-black font-syne uppercase text-white">
-              {session.session_name} • {session.location} ({session.country_name})
-            </h3>
+      {/* Encyclopedic Secondary Navigation Bar (Scrollable) */}
+      <nav aria-label="Navegación enciclopédica" className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-8 scrollbar-none border-b border-white/10">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentTab === item.id;
+
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                navigate(item.path);
+                if (searchQuery) setSearchQuery('');
+              }}
+              className={`flex items-center gap-2 px-3 py-2 text-xs font-mono tracking-wider uppercase transition-all whitespace-nowrap shrink-0 border ${
+                isActive
+                  ? 'bg-white text-black font-bold border-white shadow-md'
+                  : 'bg-white/5 text-white/70 hover:text-white hover:bg-white/10 border-white/10'
+              }`}
+            >
+              <Icon size={14} className={isActive ? 'text-black' : 'text-white/60'} />
+              <span>{item.label}</span>
+              {isActive && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FF1E00] ml-1" />
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Main View Area */}
+      <div className="min-h-[600px]">
+        {/* Case 1: Specific Article with ID (e.g. /f1-real/pilotos/max-verstappen or /f1-real/temporadas/2021) */}
+        {category && id ? (
+          renderArticle()
+        ) : category === 'race-center' ? (
+          /* Case 2: Advanced Race Center & Live Timing (OpenF1 Telemetry) */
+          <AdvancedRaceCenter />
+        ) : category === 'reglamento' ? (
+          /* Case 3: Regulations and FIA Stewards Archive */
+          <RegulationsWikiArticle />
+        ) : category === 'tecnologia' ? (
+          /* Case 4: Technology and Ground Effect Engineering */
+          <TechnicalWikiArticle />
+        ) : category === 'junior' ? (
+          /* Case 5: Feeder Series F2/F3 and Driver Academies */
+          <JuniorCategoryArticle />
+        ) : category === 'records' ? (
+          /* Case 6: Historical All-Time Records and Scoring Systems */
+          <HistoricalRecordsView />
+        ) : category === 'fuentes' ? (
+          /* Case 7: Legal Data Sources Registry and API Diagnostics */
+          <SourceRegistryView />
+        ) : category === 'temporadas' ? (
+          /* Case 8: Historical Seasons Directory (1950 - 2024) */
+          <div className="space-y-6">
+            <div className="border-b border-white/10 pb-4">
+              <span className="text-[10px] font-mono text-[#FF1E00] font-bold uppercase tracking-wider block mb-1">
+                ARCHIVO HISTÓRICO // JOLPICA-F1 API
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black font-syne uppercase text-white">
+                Campeonatos Mundiales de Fórmula 1 (1950–2024)
+              </h2>
+              <p className="text-xs sm:text-sm text-white/70 font-sans mt-1">
+                Selecciona cualquier temporada para acceder a su monografía enciclopédica, calendario completo, clasificaciones oficiales y estadísticas.
+              </p>
+            </div>
+
+            {/* Quick Filter Bar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {HISTORICAL_SEASONS.map((s) => (
+                <button
+                  key={s.year}
+                  onClick={() => navigate(`/f1-real/temporadas/${s.year}`)}
+                  className="bg-[#1b1b26] hover:bg-[#222232] border border-white/10 hover:border-[#FF1E00] p-4 text-left transition-all space-y-2 group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xl font-black font-syne text-white group-hover:text-[#FF1E00] transition-colors">
+                      {s.year}
+                    </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 bg-white/5 text-white/60 border border-white/10">
+                      {s.races} Carreras
+                    </span>
+                  </div>
+                  <div className="text-xs space-y-0.5">
+                    <div className="text-white/60 font-mono text-[11px]">
+                      Campeón: <strong className="text-amber-400 font-sans">{s.champDriver}</strong>
+                    </div>
+                    <div className="text-white/60 font-mono text-[11px]">
+                      Constructor: <strong className="text-white font-sans">{s.champTeam}</strong>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-white/5 text-[10px] font-mono text-[#FF1E00] flex items-center justify-between">
+                    <span>Ver Monografía Completa</span>
+                    <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="text-right">
-            <span className="text-[8px] font-mono text-white/40 uppercase block">FECHA DE SESIÓN</span>
-            <span className="text-xs font-mono font-bold text-white">
-              {new Date(session.date_start).toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </span>
+        ) : category === 'grand-prix' ? (
+          /* Case 9: Grand Prix Directory (2024 Calendar Rounds) */
+          <div className="space-y-6">
+            <div className="border-b border-white/10 pb-4">
+              <span className="text-[10px] font-mono text-[#FF1E00] font-bold uppercase tracking-wider block mb-1">
+                CALENDARIO OFICIAL FIA // GRANDES PREMIOS 2024
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black font-syne uppercase text-white">
+                Grandes Premios de la Temporada 2024
+              </h2>
+              <p className="text-xs sm:text-sm text-white/70 font-sans mt-1">
+                Accede a las clasificaciones oficiales de carrera, sesiones de clasificación, resultados de Sprint y resoluciones de comisarios de cada Gran Premio.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {F1_CIRCUITS_DATA.map((circuit) => (
+                <div
+                  key={circuit.id}
+                  className="bg-[#1b1b26] border border-white/10 p-4 space-y-3 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-mono font-bold text-[#FF1E00]">
+                        RONDA #{circuit.round}
+                      </span>
+                      <span className="text-xs">{circuit.flag} {circuit.country}</span>
+                    </div>
+                    <h3 className="font-syne font-bold text-white text-base">
+                      {circuit.circuitName}
+                    </h3>
+                    <p className="text-[11px] font-mono text-white/50">
+                      {circuit.circuitName} • {circuit.lengthKm} km
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+                    <button
+                      onClick={() => navigate(`/f1-real/grand-prix/2024-${circuit.round}`)}
+                      className="px-3 py-1.5 bg-[#FF1E00] hover:bg-red-600 text-white text-xs font-mono uppercase font-bold transition-colors flex items-center gap-1"
+                    >
+                      <span>Ver Resultados</span>
+                      <ChevronRight size={12} />
+                    </button>
+                    <WikiLink to={`/f1-real/circuitos/${circuit.id}`} className="text-[10px] font-mono text-white/50 hover:text-white">
+                      Ver Circuito →
+                    </WikiLink>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Tabs Selector */}
-      <div className="flex flex-wrap gap-2 mb-8 border-b border-white/10 pb-4">
-        <button
-          onClick={() => setActiveTab('drivers')}
-          className={`px-6 py-3 font-mono text-[9px] uppercase tracking-[0.25em] font-bold transition-all border flex items-center justify-center gap-2 ${
-            activeTab === 'drivers'
-              ? 'bg-white text-black border-white'
-              : 'bg-[#121212] text-white/60 border-white/10 hover:text-white hover:border-white/30'
-          }`}
-        >
-          <Trophy size={13} />
-          <span>Mundial de Pilotos (Puntos)</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('teams')}
-          className={`px-6 py-3 font-mono text-[9px] uppercase tracking-[0.25em] font-bold transition-all border flex items-center justify-center gap-2 ${
-            activeTab === 'teams'
-              ? 'bg-white text-black border-white'
-              : 'bg-[#121212] text-white/60 border-white/10 hover:text-white hover:border-white/30'
-          }`}
-        >
-          <F1CarIcon size={14} />
-          <span>Mundial de Constructores</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('results')}
-          className={`px-6 py-3 font-mono text-[9px] uppercase tracking-[0.25em] font-bold transition-all border flex items-center justify-center gap-2 ${
-            activeTab === 'results'
-              ? 'bg-white text-black border-white'
-              : 'bg-[#121212] text-white/60 border-white/10 hover:text-white hover:border-white/30'
-          }`}
-        >
-          <ChequeredFlagIcon size={13} />
-          <span>Resultados Último GP</span>
-        </button>
-      </div>
-
-      {/* Main Tab Content */}
-      <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
-        {loading ? (
-          <div className="py-24 flex flex-col items-center justify-center text-center">
-            <div className="w-8 h-8 border-2 border-white/20 border-t-[#e10600] rounded-full animate-spin mb-4" />
-            <span className="text-[9px] font-mono tracking-[0.3em] text-white/50 uppercase">
-              CONECTANDO CON OPENF1 API...
-            </span>
-          </div>
+        ) : category ? (
+          /* Case 10: Standard Category Index View (pilotos, escuderias, monoplazas, personal, circuitos) */
+          <CategoryIndexView category={category as WikiCategory} />
         ) : (
-          <>
-            {/* 1. DRIVERS CHAMPIONSHIP TAB */}
-            {activeTab === 'drivers' && (
-              <div>
-                <div className="grid grid-cols-12 gap-2 px-6 py-4 bg-[#141414] border-b border-white/10 text-[8px] font-mono font-bold tracking-widest text-white/40 uppercase">
-                  <div className="col-span-1 text-center">POS</div>
-                  <div className="col-span-6 sm:col-span-5">PILOTO & ESCUDERÍA</div>
-                  <div className="col-span-2 hidden sm:block text-center">PAÍS</div>
-                  <div className="col-span-2 text-right">PREVIO</div>
-                  <div className="col-span-3 sm:col-span-2 text-right">PUNTOS ACTUALES</div>
-                </div>
-
-                <div className="divide-y divide-white/5">
-                  {driverStandings.map((item) => {
-                    const isP1 = item.position_current === 1;
-                    const isP2 = item.position_current === 2;
-                    const isP3 = item.position_current === 3;
-                    const delta = item.points_current - item.points_start;
-
-                    return (
-                      <div
-                        key={item.driver_number}
-                        className={`grid grid-cols-12 gap-2 px-6 py-3.5 items-center hover:bg-white/[0.03] transition-colors ${
-                          isP1 ? 'bg-gradient-to-r from-[#fed100]/10 to-transparent' : ''
-                        }`}
-                      >
-                        {/* Pos */}
-                        <div className="col-span-1 flex justify-center items-center">
-                          <span
-                            className={`w-6 h-6 rounded-full flex items-center justify-center font-mono font-black text-xs ${
-                              isP1
-                                ? 'bg-[#fed100] text-black shadow-lg shadow-[#fed100]/30'
-                                : isP2
-                                ? 'bg-zinc-300 text-black'
-                                : isP3
-                                ? 'bg-amber-700 text-white'
-                                : 'text-white/50'
-                            }`}
-                          >
-                            {item.position_current}
-                          </span>
-                        </div>
-
-                        {/* Driver info */}
-                        <div className="col-span-6 sm:col-span-5 flex items-center gap-3">
-                          {/* Driver Headshot if available */}
-                          {item.driver?.headshot_url ? (
-                            <img
-                              src={item.driver.headshot_url}
-                              alt={item.driver.full_name}
-                              className="w-8 h-8 rounded-full object-cover bg-[#161616] border border-white/10"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-[#161616] border border-white/10 flex items-center justify-center text-[10px] font-mono font-bold text-white/40">
-                              #{item.driver_number}
-                            </div>
-                          )}
-
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs sm:text-sm font-syne text-white">
-                                <span className="font-normal text-white/70">{item.driver?.first_name} </span>
-                                <span className="font-black uppercase text-white">{item.driver?.last_name}</span>
-                              </span>
-                              <span className="text-[8px] font-mono text-white/30">
-                                #{item.driver_number}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <TeamBadge teamName={item.driver?.team_name || ''} size="sm" />
-                              <span
-                                className="w-1.5 h-1.5 rounded-full"
-                                style={{ backgroundColor: getTeamMeta(item.driver?.team_name).color }}
-                              />
-                              <span className="text-[9px] font-mono text-white/50 uppercase">
-                                {getTeamMeta(item.driver?.team_name).shortName}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Country */}
-                        <div className="col-span-2 hidden sm:flex justify-center items-center">
-                          <span className="text-[9px] font-mono px-2 py-0.5 bg-white/5 border border-white/10 text-white/60 uppercase">
-                            {item.driver?.country_code || 'F1'}
-                          </span>
-                        </div>
-
-                        {/* Prev points */}
-                        <div className="col-span-2 text-right">
-                          <span className="text-xs font-mono text-white/30">
-                            {item.points_start}
-                          </span>
-                        </div>
-
-                        {/* Current Points */}
-                        <div className="col-span-3 sm:col-span-2 text-right flex flex-col items-end">
-                          <span className="text-sm sm:text-base font-black font-syne text-white">
-                            {item.points_current} <span className="text-[8px] font-mono text-white/40 font-normal">PTS</span>
-                          </span>
-                          {delta > 0 && (
-                            <span className="text-[8px] font-mono text-emerald-400">
-                              +{delta} en última carrera
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* 2. TEAMS CHAMPIONSHIP TAB */}
-            {activeTab === 'teams' && (
-              <div>
-                <div className="grid grid-cols-12 gap-2 px-6 py-4 bg-[#141414] border-b border-white/10 text-[8px] font-mono font-bold tracking-widest text-white/40 uppercase">
-                  <div className="col-span-1 text-center">POS</div>
-                  <div className="col-span-7 sm:col-span-6">ESCUDERÍA / CONSTRUCTOR</div>
-                  <div className="col-span-2 text-right hidden sm:block">PREVIO</div>
-                  <div className="col-span-4 sm:col-span-3 text-right">PUNTOS TOTALES</div>
-                </div>
-
-                <div className="divide-y divide-white/5">
-                  {teamStandings.map((team) => {
-                    const isP1 = team.position_current === 1;
-                    const isP2 = team.position_current === 2;
-                    const isP3 = team.position_current === 3;
-                    const maxPoints = teamStandings[0]?.points_current || 600;
-                    const pct = Math.max(4, Math.round((team.points_current / maxPoints) * 100));
-                    const teamMeta = getTeamMeta(team.team_name);
-                    const delta = team.points_current - team.points_start;
-
-                    return (
-                      <div
-                        key={team.team_name}
-                        className={`grid grid-cols-12 gap-2 px-4 sm:px-6 py-4 items-center transition-all ${
-                          isP1 ? 'bg-gradient-to-r from-emerald-500/10 via-transparent to-transparent' : 'hover:bg-white/[0.02]'
-                        }`}
-                        style={{
-                          borderLeft: `3px solid ${teamMeta.color}`,
-                        }}
-                      >
-                        {/* Position */}
-                        <div className="col-span-1 flex justify-center items-center">
-                          <span
-                            className={`w-6 h-6 rounded-xs flex items-center justify-center font-mono font-bold text-xs ${
-                              isP1
-                                ? 'bg-[#fed100] text-black shadow-md shadow-[#fed100]/30'
-                                : isP2
-                                ? 'bg-zinc-300 text-black'
-                                : isP3
-                                ? 'bg-amber-700 text-white'
-                                : 'text-white/50'
-                            }`}
-                          >
-                            {team.position_current}
-                          </span>
-                        </div>
-
-                        {/* Team Logo, Name & Glowing Progress Bar */}
-                        <div className="col-span-7 sm:col-span-6 flex items-center gap-3 sm:gap-4 pr-2 sm:pr-4">
-                          <TeamBadge teamName={team.team_name} size="md" />
-
-                          <div className="flex flex-col flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                              <span className="text-xs sm:text-sm font-f1 font-bold uppercase text-white truncate tracking-wide">
-                                {teamMeta.shortName}
-                              </span>
-                              <span
-                                className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded-xs text-black uppercase shadow-xs"
-                                style={{ backgroundColor: teamMeta.color }}
-                              >
-                                {teamMeta.code}
-                              </span>
-                              <span className="text-[8px] font-mono text-white/40 hidden md:inline truncate">
-                                • {teamMeta.engine}
-                              </span>
-                            </div>
-
-                            {/* Team Liveried Progress Bar */}
-                            <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden p-[1px] border border-white/5">
-                              <div
-                                className="h-full rounded-full transition-all duration-700"
-                                style={{
-                                  width: `${pct}%`,
-                                  background: `linear-gradient(90deg, ${teamMeta.color} 0%, ${teamMeta.secondaryColor} 100%)`,
-                                  boxShadow: `0 0 10px ${teamMeta.color}80`,
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Previous points */}
-                        <div className="col-span-2 text-right hidden sm:block">
-                          <span className="text-xs font-mono text-white/30">
-                            {team.points_start}
-                          </span>
-                        </div>
-
-                        {/* Current Points & Delta */}
-                        <div className="col-span-4 sm:col-span-3 text-right flex flex-col items-end">
-                          <span className="text-sm sm:text-base font-f1 font-bold text-white">
-                            {team.points_current} <span className="text-[8px] font-mono text-white/40 font-normal">PTS</span>
-                          </span>
-                          {delta > 0 && (
-                            <span className="text-[8px] font-mono text-emerald-400 font-bold">
-                              +{delta} pts GP
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* 3. LAST RACE RESULTS TAB */}
-            {activeTab === 'results' && (
-              <div>
-                <div className="grid grid-cols-12 gap-2 px-6 py-4 bg-[#141414] border-b border-white/10 text-[8px] font-mono font-bold tracking-widest text-white/40 uppercase">
-                  <div className="col-span-1 text-center">POS</div>
-                  <div className="col-span-5 sm:col-span-5">PILOTO</div>
-                  <div className="col-span-2 text-center">VUELTAS</div>
-                  <div className="col-span-2 text-right">DIFERENCIA</div>
-                  <div className="col-span-2 text-right">PUNTOS GP</div>
-                </div>
-
-                <div className="divide-y divide-white/5">
-                  {raceResults.map((r, i) => {
-                    return (
-                      <div
-                        key={r.driver_number + i}
-                        className="grid grid-cols-12 gap-2 px-6 py-3.5 items-center hover:bg-white/[0.03] transition-colors"
-                      >
-                        {/* Position */}
-                        <div className="col-span-1 flex justify-center items-center">
-                          {r.dnf ? (
-                            <span className="text-[8px] font-mono text-[#e10600] font-bold px-1.5 py-0.5 bg-red-950/40 border border-red-500/20">
-                              DNF
-                            </span>
-                          ) : (
-                            <span className="font-mono font-bold text-xs text-white">
-                              {r.position || '-'}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Pilot & Team */}
-                        <div className="col-span-5 sm:col-span-5 flex items-center gap-3">
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs sm:text-sm font-syne text-white truncate">
-                                <span className="font-normal text-white/70">{r.driver?.first_name} </span>
-                                <span className="font-black uppercase text-white">{r.driver?.last_name}</span>
-                              </span>
-                              <span className="text-[8px] font-mono text-white/30">
-                                #{r.driver_number}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <TeamBadge teamName={r.driver?.team_name || ''} size="sm" />
-                              <span
-                                className="w-1.5 h-1.5 rounded-full"
-                                style={{ backgroundColor: getTeamMeta(r.driver?.team_name).color }}
-                              />
-                              <span className="text-[8px] font-mono text-white/50 uppercase">
-                                {getTeamMeta(r.driver?.team_name).shortName}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Laps */}
-                        <div className="col-span-2 text-center">
-                          <span className="text-xs font-mono text-white/60">
-                            {r.number_of_laps}
-                          </span>
-                        </div>
-
-                        {/* Gap */}
-                        <div className="col-span-2 text-right">
-                          <span
-                            className={`text-[9px] font-mono ${
-                              r.gap_to_leader === 'WINNER'
-                                ? 'text-[#fed100] font-bold'
-                                : r.gap_to_leader.includes('LAP')
-                                ? 'text-white/30'
-                                : 'text-white/70'
-                            }`}
-                          >
-                            {r.gap_to_leader}
-                          </span>
-                        </div>
-
-                        {/* Points Awarded */}
-                        <div className="col-span-2 text-right">
-                          <span
-                            className={`text-xs sm:text-sm font-syne font-black ${
-                              r.points > 0 ? 'text-emerald-400' : 'text-white/20'
-                            }`}
-                          >
-                            {r.points > 0 ? `+${r.points}` : '0'}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </>
+          /* Case 11: Default Wiki Portal Home */
+          <WikiPortalHome
+            session={session}
+            onNavigateCategory={(cat) => navigate(`/f1-real/${cat}`)}
+            onOpenRaceCenter={() => navigate('/f1-real/race-center')}
+          />
         )}
       </div>
+
+      {/* Legacy Modal Support */}
+      <EntityDetailModal
+        entity={selectedEntity}
+        onClose={() => setSelectedEntity(null)}
+        onSelectEntity={setSelectedEntity}
+      />
     </section>
   );
 };

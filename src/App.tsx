@@ -33,6 +33,8 @@ const App: React.FC = () => {
         <Route path="/" element={<PaddockHomePage />} />
         <Route path="/daily" element={<DailyChallengePage />} />
         <Route path="/f1-real" element={<RealF1Page />} />
+        <Route path="/f1-real/:category" element={<RealF1Page />} />
+        <Route path="/f1-real/:category/:id" element={<RealF1Page />} />
         <Route path="/quiz" element={<QuizPage />} />
         <Route path="/driverle" element={<DriverlePage />} />
         <Route path="/circuits" element={<CircuitsPage />} />

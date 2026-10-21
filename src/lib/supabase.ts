@@ -224,17 +224,42 @@ export const createMockSupabase = () => {
 import { supabase as realSupabase } from '../utils/supabase';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey && realSupabase);
 
 export const supabase: any = isSupabaseConfigured ? realSupabase : createMockSupabase();
 export const supabaseAdmin: any = isSupabaseConfigured ? realSupabase : createMockSupabase();
 
 export const getProducts = async () => {
-  return [];
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('Failed to fetch products from Supabase, falling back to local:', error);
+      return getLocalStorageTable('products');
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('getProducts error:', err);
+    return getLocalStorageTable('products');
+  }
 };
 
 export const addProduct = async (product: any) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('products')
+      .insert([product])
+      .select()
+      .single();
+    if (!error && data) {
+      return data;
+    }
+  } catch (e) {
+    console.warn('Supabase addProduct failed, saving locally:', e);
+  }
   const items = getLocalStorageTable('products');
   const created = {
     ...product,
@@ -246,8 +271,23 @@ export const addProduct = async (product: any) => {
 
 export const uploadImage = async (file: File) => {
   try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `products/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('product-images')
+      .upload(filePath, file);
+
+    if (!uploadError) {
+      const { data } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+      if (data?.publicUrl) return data.publicUrl;
+    }
     return URL.createObjectURL(file);
   } catch (e) {
     return 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?q=80&w=1000&auto=format&fit=crop';
   }
 };
+
